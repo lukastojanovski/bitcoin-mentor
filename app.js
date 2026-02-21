@@ -23,35 +23,31 @@ async function initOverview() {
 
 async function loadLiveMarketData() {
     try {
-        // Fetch current price + Fear & Greed in parallel with history
         const [marketRes, historyRes] = await Promise.all([
-            fetch("/api/market-data"),
-            fetch("/api/market-history")
+            fetch("/api/market-data", { cache: "no-store" }),
+            fetch("/api/market-history", { cache: "no-store" })
         ]);
 
         // ── Current data ──
-        if (marketRes.ok) {
-            const d = await marketRes.json();
-            btcPrice       = d.btcPrice;
-            btc24h         = d.btc24h;
-            btc7d          = d.btc7d;
-            fearGreedNow   = d.fearGreedNow;
-            fearGreedPrev  = d.fearGreedPrev;
-        } else {
-            throw new Error("market-data API failed");
-        }
+        if (!marketRes.ok) throw new Error("market-data API failed");
+        const d = await marketRes.json();
+
+        if (!d.btcPrice) throw new Error("market-data returned empty");
+
+        btcPrice      = d.btcPrice;
+        btc24h        = d.btc24h;
+        btc7d         = d.btc7d;
+        fearGreedNow  = d.fearGreedNow;
+        fearGreedPrev = d.fearGreedPrev;
 
         // ── Historical sparkline ──
         if (historyRes.ok) {
             const h = await historyRes.json();
-            btcSpark7d = h.prices;
+            btcSpark7d = Array.isArray(h.prices) && h.prices.length ? h.prices : Array(120).fill(btcPrice);
         } else {
-            // Fall back to a flat line — not ideal but won't crash
-            btcSpark7d = Array(120).fill(btcPrice || 60000);
+            btcSpark7d = Array(120).fill(btcPrice);
         }
 
-        // S&P proxy — kept internally for risk score
-        // Not shown to user, so we just use a neutral value
         spxCloseNow   = 5100;
         spxClosePrev  = 5100;
         spxClose7dAgo = 5100;
@@ -65,7 +61,6 @@ async function loadLiveMarketData() {
     }
 }
 
-// Fallback if both API calls fail (e.g. CoinGecko rate-limited)
 function loadFallbackData() {
     btcPrice      = null;
     btc24h        = null;
@@ -78,10 +73,9 @@ function loadFallbackData() {
     spxClosePrev  = 5100;
     spxClose7dAgo = 5100;
 
-    updateBTCUI(true);   // passes failed=true → shows "Price unavailable"
+    updateBTCUI(true);
     renderOverviewModel();
 }
-////////////////////////////
 
 
 function renderOverviewModel() {
