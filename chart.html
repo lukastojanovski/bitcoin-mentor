@@ -507,8 +507,8 @@ return "Euphoria";
 }
 
 function riskScore(fg, btc24h, btc7d) {
-const vol = (Math.abs(btc24h ?? 0) * 2 + Math.abs(btc7d ?? 0)) * 2;
-return Math.round(Math.max(0, Math.min(100, (fg ?? 50) * 0.50 + Math.min(40, vol))));
+  const vol = (Math.abs(btc24h ?? 0) * 2 + Math.abs(btc7d ?? 0)) * 2;
+  return Math.round(Math.max(0, Math.min(100, (fg ?? 50) * 0.50 + Math.min(40, vol))));
 }
 
 function riskLabel(s) {
@@ -605,40 +605,44 @@ loadSlice(curTf);
 
 // ── Populate UI with market data ──
 function populateMetrics(btcPrice, btc24h, btc7d, fg) {
-// Price header
-document.getElementById("hdr-price").textContent = btcPrice ? fmtUSD(btcPrice) : "—";
+  document.getElementById("hdr-price").textContent = btcPrice ? fmtUSD(btcPrice) : "—";
 
-const el24 = document.getElementById("hdr-24h");
-if (btc24h !== null) {
-el24.textContent = "24h " + fmtPct(btc24h);
-el24.className   = "pill " + chgCls(btc24h);
-}
+  const el24 = document.getElementById("hdr-24h");
+  if (btc24h !== null && btc24h !== undefined && typeof btc24h === "number") {
+    el24.textContent = "24h " + fmtPct(btc24h);
+    el24.className   = "pill " + chgCls(btc24h);
+  } else {
+    el24.textContent = "24h —";
+    el24.className   = "pill neu";
+  }
 
-const el7d = document.getElementById("hdr-7d");
-if (btc7d !== null) {
-el7d.textContent = "7d " + fmtPct(btc7d);
-el7d.className   = "pill " + chgCls(btc7d);
-}
+  const el7d = document.getElementById("hdr-7d");
+  if (btc7d !== null && btc7d !== undefined && typeof btc7d === "number") {
+    el7d.textContent = "7d " + fmtPct(btc7d);
+    el7d.className   = "pill " + chgCls(btc7d);
+  } else {
+    el7d.textContent = "7d —";
+    el7d.className   = "pill neu";
+  }
 
-const pos   = positionFromSignals(fg, btc7d);
-const score = riskScore(fg, btc24h, btc7d);
-const risk  = riskLabel(score);
-const bias  = biasFrom(pos);
+  const pos   = positionFromSignals(fg, btc7d);
+  const score = riskScore(fg ?? null, btc24h ?? null, btc7d ?? null);
+  const risk  = riskLabel(score);
+  const bias  = biasFrom(pos);
 
-document.getElementById("m-fg").textContent    = fg !== null ? fg + " / 100" : "—";
-document.getElementById("m-phase").textContent = pos;
-document.getElementById("m-risk").textContent  = risk;
-document.getElementById("m-bias").textContent  = bias;
+  document.getElementById("m-fg").textContent    = fg !== null && fg !== undefined ? fg + " / 100" : "—";
+  document.getElementById("m-phase").textContent = pos;
+  document.getElementById("m-risk").textContent  = risk;
+  document.getElementById("m-bias").textContent  = bias;
 
-// Color coding
-const riskEl = document.getElementById("m-risk");
-riskEl.className = "mc-value " + (score >= 65 ? "bad" : score >= 40 ? "warn" : "good");
+  const riskEl = document.getElementById("m-risk");
+  riskEl.className = "mc-value " + (score >= 65 ? "bad" : score >= 40 ? "warn" : "good");
 
-const fgEl = document.getElementById("m-fg");
-fgEl.className = "mc-value " + (fg >= 65 ? "bad" : fg >= 35 ? "warn" : "bad");
+  const fgEl = document.getElementById("m-fg");
+  fgEl.className = "mc-value " + (fg !== null && fg >= 65 ? "bad" : fg !== null && fg >= 35 ? "warn" : "bad");
 
-document.getElementById("phase-label").textContent     = pos;
-document.getElementById("commentary-text").textContent = getCommentary(pos);
+  document.getElementById("phase-label").textContent     = pos;
+  document.getElementById("commentary-text").textContent = getCommentary(pos);
 }
 
 // ── Live data fetch ──
