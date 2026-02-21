@@ -308,15 +308,19 @@ function thesisFromPosition(pos) {
 
 function whatChangedBullets({ fgNow, fgPrev, sp1d, sp7d, btc24h, btc7d }) {
     const bullets = [];
-    if (fgNow !== null) {
-        const d = (fgPrev !== null) ? (fgNow - fgPrev) : null;
+    if (fgNow !== null && fgNow !== undefined) {
+        const d = (fgPrev !== null && fgPrev !== undefined) ? (fgNow - fgPrev) : null;
         if (d !== null) bullets.push(`Sentiment: ${d >= 0 ? "improving" : "worsening"} (${d > 0 ? "+" : ""}${d}).`);
         else bullets.push(`Sentiment: ${fgNow}/100 today.`);
     } else {
         bullets.push("Sentiment: unavailable (API).");
     }
-    if (btc24h !== null) bullets.push(`BTC: 24h ${btc24h >= 0 ? "up" : "down"} (${btc24h >= 0 ? "+" : ""}${btc24h.toFixed(2)}%).`);
-    if (btc7d !== null) bullets.push(`BTC: 7d ${btc7d >= 0 ? "up" : "down"} (${btc7d >= 0 ? "+" : ""}${btc7d.toFixed(2)}%).`);
+    if (btc24h !== null && btc24h !== undefined && typeof btc24h === "number") {
+        bullets.push(`BTC: 24h ${btc24h >= 0 ? "up" : "down"} (${btc24h >= 0 ? "+" : ""}${btc24h.toFixed(2)}%).`);
+    }
+    if (btc7d !== null && btc7d !== undefined && typeof btc7d === "number") {
+        bullets.push(`BTC: 7d ${btc7d >= 0 ? "up" : "down"} (${btc7d >= 0 ? "+" : ""}${btc7d.toFixed(2)}%).`);
+    }
     return bullets.slice(0, 3);
 }
 
@@ -324,7 +328,7 @@ function whatItMeansText({ pos, risk, interpTitle }) {
     if (pos === "Capitulation") return "Stress is elevated. Reduce noise and avoid reactive decisions.";
     if (pos === "Accumulation") return "Short-term noise increased. Long-term thesis stays intact.";
     if (pos === "Expansion")    return "Momentum improves, but discipline prevents overexposure.";
-    return `Risk is elevated (${interpTitle}). Avoid chasing and respect limits.`;
+    return `Risk is elevated (${interpTitle || "mixed signals"}). Avoid chasing and respect limits.`;
 }
 
 
