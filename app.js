@@ -271,10 +271,12 @@ function combinedInterpretation(crypto, equity) {
 
 function positionFromSignals(fg, btc7d) {
     if (fg === null || btc7d === null) return "Accumulation";
-    if (fg <= 20 && btc7d <= -10) return "Capitulation";
-    if (fg <= 45 && btc7d < 5)   return "Accumulation";
-    if (fg <= 75 && btc7d >= 0)  return "Expansion";
-    return "Euphoria";
+    if (fg <= 25 && btc7d <= -5)  return "Capitulation";
+    if (fg <= 25)                  return "Capitulation";  // extreme fear always = capitulation
+    if (fg <= 45 && btc7d < 5)    return "Accumulation";
+    if (fg <= 75 && btc7d >= 0)   return "Expansion";
+    if (fg > 75)                   return "Euphoria";
+    return "Accumulation";  // safe default instead of Euphoria
 }
 
 function riskScore({ fg, spMood, btc24h, btc7d }) {
