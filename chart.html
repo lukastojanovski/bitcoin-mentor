@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Market Context — Bitcoin Mentor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js"></script>
+  <style>
+    :root {
+      --bg:      #06060a;
+      --surface: #0c0c10;
+      --card:    rgba(255,255,255,0.04);
+      --stroke:  rgba(255,255,255,0.07);
+      --text:    #f0ede8;
+      --muted:   rgba(240,237,232,0.60);
+      --muted2:  rgba(240,237,232,0.34);
+      --accent:  #f7931a;
+      --good:    #34c759;
+      --warn:    #f5a623;
+      --bad:     #ff453a;
+      --r:       16px;
+      --r-sm:    12px;
+      --max:     1060px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text);
+      font-family: 'DM Sans', system-ui, sans-serif;
+      line-height: 1.55; -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── AMBIENT GLOW ── */
+    .glow {
+      position: fixed; top: -200px; left: 50%; transform: translateX(-50%);
+      width: 800px; height: 450px;
+      background: radial-gradient(ellipse, rgba(247,147,26,0.07) 0%, transparent 70%);
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── NAV ── */
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      background: rgba(6,6,10,0.75);
+      backdrop-filter: blur(20px) saturate(180%);
+    }
+    .nav-inner {
+      max-width: var(--max); margin: 0 auto; padding: 11px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-left { display: flex; align-items: center; gap: 14px; }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 6px 13px; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.07);
+      background: rgba(255,255,255,0.03);
+      color: var(--muted); font-size: 0.8rem; cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .back-link:hover { background: rgba(255,255,255,0.07); color: var(--text); }
+    .back-link svg { width: 13px; height: 13px; }
+    .brand { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.92rem; letter-spacing: -0.02em; }
+    .logo-mark {
+      width: 24px; height: 24px; border-radius: 6px;
+      display: grid; place-items: center;
+      background: linear-gradient(180deg, #f9b44e, #f7931a);
+      color: #000; font-weight: 800; font-size: 0.78rem;
+      box-shadow: 0 3px 10px rgba(247,147,26,0.25);
+    }
+    .btn-upgrade {
+      padding: 8px 16px; border-radius: 999px; border: none;
+      background: linear-gradient(180deg, #f9b44e, #f7931a);
+      color: #000; font-family: 'DM Sans', sans-serif;
+      font-weight: 650; font-size: 0.82rem; cursor: pointer;
+      box-shadow: 0 4px 16px rgba(247,147,26,0.20);
+      transition: all 0.15s ease;
+    }
+    .btn-upgrade:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(247,147,26,0.30); }
+
+    /* ── PAGE ── */
+    .page {
+      position: relative; z-index: 1;
+      max-width: var(--max); margin: 0 auto;
+      padding: 80px 24px 72px;
+    }
+
+    /* ── PRICE HEADER ── */
+    .price-header {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      gap: 16px; margin-bottom: 16px; padding-top: 16px;
+      flex-wrap: wrap;
+    }
+    .price-left { display: flex; flex-direction: column; gap: 4px; }
+    .price-pair {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--muted2);
+    }
+    .price-amount {
+      font-size: 2rem; font-weight: 750; letter-spacing: -0.04em;
+      font-variant-numeric: tabular-nums; line-height: 1;
+    }
+    .price-changes { display: flex; gap: 8px; margin-top: 6px; }
+    .pill {
+      font-size: 0.73rem; font-weight: 600; padding: 3px 9px;
+      border-radius: 999px; font-variant-numeric: tabular-nums;
+    }
+    .pill.pos { background: rgba(52,199,89,0.10); color: var(--good); }
+    .pill.neg { background: rgba(255,69,58,0.10); color: var(--bad); }
+    .pill.neu { background: rgba(255,255,255,0.05); color: var(--muted); }
+
+    .tf-row { display: flex; gap: 3px; }
+    .tf-btn {
+      padding: 6px 13px; border-radius: 8px; border: none;
+      background: transparent; color: var(--muted2);
+      font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 500;
+      cursor: pointer; transition: all 0.15s ease;
+    }
+    .tf-btn:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+    .tf-btn.active {
+      background: rgba(247,147,26,0.09); color: var(--accent); font-weight: 650;
+      border: 1px solid rgba(247,147,26,0.16);
+    }
+
+    /* ── CHART ── */
+    .chart-wrap {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: var(--r);
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+    #chart-container { width: 100%; height: 380px; }
+    @media (max-width: 600px) { #chart-container { height: 260px; } }
+
+    /* ── METRICS ROW ── */
+    .metrics-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    @media (max-width: 700px) {
+      .metrics-row { grid-template-columns: repeat(2, 1fr); }
+    }
+    .metric-card {
+      padding: 16px 18px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: var(--r-sm);
+    }
+    .metric-card .mc-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.63rem; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--muted2);
+      margin-bottom: 7px;
+    }
+    .metric-card .mc-value {
+      font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+    }
+    .mc-value.good { color: var(--good); }
+    .mc-value.warn { color: var(--warn); }
+    .mc-value.bad  { color: var(--bad); }
+
+    /* ── ANALYSIS GRID (commentary + pro) ── */
+    .analysis-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width: 760px) {
+      .analysis-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── COMMENTARY CARD ── */
+    .commentary {
+      padding: 24px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: var(--r);
+      display: flex; flex-direction: column;
+    }
+    .commentary .c-tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.63rem; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--muted2);
+      margin-bottom: 14px;
+    }
+    .phase-badge {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 6px 13px; border-radius: 999px;
+      background: rgba(247,147,26,0.07);
+      border: 1px solid rgba(247,147,26,0.15);
+      font-weight: 650; font-size: 0.84rem;
+      margin-bottom: 16px; width: fit-content;
+    }
+    .phase-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 6px rgba(247,147,26,0.45);
+    }
+    .commentary p {
+      font-size: 0.88rem; color: var(--muted);
+      line-height: 1.75; margin: 0;
+    }
+    .commentary .c-footer {
+      margin-top: auto; padding-top: 18px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      font-size: 0.74rem; color: var(--muted2);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .c-footer svg { width: 13px; height: 13px; opacity: 0.5; }
+
+    /* ── PRO UPSELL ── */
+    .pro-card {
+      position: relative;
+      padding: 28px 26px;
+      background:
+              linear-gradient(170deg, rgba(247,147,26,0.06) 0%, rgba(247,147,26,0.0) 50%),
+              rgba(255,255,255,0.025);
+      border: 1px solid rgba(247,147,26,0.12);
+      border-radius: var(--r);
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+    .pro-card::before {
+      content: '';
+      position: absolute; top: -40px; right: -40px;
+      width: 160px; height: 160px;
+      background: radial-gradient(circle, rgba(247,147,26,0.10) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .pro-card .pro-tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.63rem; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--accent);
+      opacity: 0.75; margin-bottom: 12px;
+      position: relative;
+    }
+    .pro-card h3 {
+      margin: 0 0 6px 0;
+      font-size: 1.15rem; font-weight: 700; letter-spacing: -0.03em;
+      position: relative;
+    }
+    .pro-card .pro-sub {
+      font-size: 0.84rem; color: var(--muted2); margin-bottom: 22px;
+      line-height: 1.5; position: relative;
+    }
+    .pro-features {
+      list-style: none; margin: 0 0 24px 0; padding: 0;
+      display: flex; flex-direction: column; gap: 12px;
+      position: relative;
+    }
+    .pro-features li {
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: 0.82rem; color: var(--muted); line-height: 1.45;
+    }
+    .pro-features li .feat-icon {
+      flex-shrink: 0; margin-top: 1px;
+      width: 18px; height: 18px; border-radius: 5px;
+      display: grid; place-items: center;
+      background: rgba(247,147,26,0.08);
+      border: 1px solid rgba(247,147,26,0.14);
+    }
+    .pro-features li .feat-icon svg { width: 10px; height: 10px; }
+    .pro-cta-wrap { margin-top: auto; position: relative; }
+    .pro-cta {
+      display: block; width: 100%; padding: 13px;
+      border-radius: 999px; border: none;
+      background: linear-gradient(180deg, #f9b44e, #f7931a);
+      color: #000; font-family: 'DM Sans', sans-serif;
+      font-weight: 700; font-size: 0.9rem;
+      cursor: pointer; text-align: center;
+      box-shadow: 0 6px 22px rgba(247,147,26,0.22);
+      transition: all 0.15s ease;
+    }
+    .pro-cta:hover { transform: translateY(-1px); box-shadow: 0 10px 30px rgba(247,147,26,0.32); }
+    .pro-price-note {
+      text-align: center; margin-top: 10px;
+      font-size: 0.72rem; color: var(--muted2);
+    }
+
+    /* ── REVEAL ── */
+    .reveal {
+      opacity: 0; transform: translateY(14px);
+      transition: opacity 450ms ease, transform 450ms ease;
+    }
+    .reveal.in { opacity: 1; transform: translateY(0); }
+    .reveal.d1 { transition-delay: 60ms; }
+    .reveal.d2 { transition-delay: 120ms; }
+    .reveal.d3 { transition-delay: 180ms; }
+    .reveal.d4 { transition-delay: 240ms; }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+
+    /* ── MOBILE (≤600px) ── */
+    @media (max-width: 600px) {
+      .page { padding: 72px 14px 48px; }
+
+      /* Nav */
+      .nav-inner { padding: 10px 14px; }
+      .back-link { padding: 5px 10px; font-size: 0.74rem; }
+      .back-link svg { width: 11px; height: 11px; }
+      .brand { font-size: 0.84rem; gap: 6px; }
+      .logo-mark { width: 22px; height: 22px; font-size: 0.7rem; }
+      .btn-upgrade { padding: 7px 14px; font-size: 0.78rem; }
+
+      /* Price header */
+      .price-header {
+        flex-direction: column; align-items: flex-start; gap: 14px;
+        padding-top: 10px; margin-bottom: 12px;
+      }
+      .price-pair { font-size: 0.62rem; }
+      .price-amount { font-size: 1.65rem; }
+      .price-changes { gap: 6px; }
+      .pill { font-size: 0.68rem; padding: 3px 7px; }
+      .tf-row { gap: 2px; flex-wrap: wrap; }
+      .tf-btn { padding: 5px 10px; font-size: 0.72rem; }
+
+      /* Chart */
+      .chart-wrap { border-radius: 12px; margin-bottom: 10px; }
+      #chart-container { height: 240px; }
+
+      /* Metrics */
+      .metrics-row { grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+      .metric-card { padding: 12px 14px; }
+      .metric-card .mc-label { font-size: 0.58rem; margin-bottom: 5px; }
+      .metric-card .mc-value { font-size: 0.95rem; }
+
+      /* Analysis grid */
+      .analysis-grid { grid-template-columns: 1fr; gap: 10px; }
+
+      /* Commentary */
+      .commentary { padding: 18px; }
+      .commentary .c-tag { font-size: 0.58rem; margin-bottom: 10px; }
+      .phase-badge { font-size: 0.78rem; padding: 5px 11px; margin-bottom: 12px; }
+      .commentary p { font-size: 0.84rem; line-height: 1.65; }
+      .commentary .c-footer { font-size: 0.68rem; padding-top: 14px; }
+
+      /* Pro card */
+      .pro-card { padding: 20px 18px; }
+      .pro-card h3 { font-size: 1.05rem; }
+      .pro-card .pro-sub { font-size: 0.8rem; margin-bottom: 18px; }
+      .pro-features { gap: 10px; margin-bottom: 20px; }
+      .pro-features li { font-size: 0.78rem; }
+      .pro-cta { padding: 12px; font-size: 0.86rem; }
+    }
+
+    /* ── SMALL PHONES (≤380px) ── */
+    @media (max-width: 380px) {
+      .price-amount { font-size: 1.4rem; }
+      #chart-container { height: 200px; }
+      .metrics-row { grid-template-columns: 1fr; gap: 6px; }
+      .metric-card {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 10px 14px;
+      }
+      .metric-card .mc-label { margin-bottom: 0; }
+      .metric-card .mc-value { font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="glow"></div>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-left">
+      <a href="index.html" class="back-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+        Back
+      </a>
+      <a href="index.html" class="brand">
+        <div class="logo-mark">₿</div>
+        <span>Bitcoin Mentor</span>
+      </a>
+    </div>
+    <button class="btn-upgrade" onclick="window.location.href='index.html#pricing'">Upgrade to Pro</button>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- PRICE HEADER -->
+  <div class="price-header reveal">
+    <div class="price-left">
+      <span class="price-pair">Bitcoin / USD</span>
+      <span class="price-amount" id="hdr-price">—</span>
+      <div class="price-changes">
+        <span class="pill neu" id="hdr-24h">24h —</span>
+        <span class="pill neu" id="hdr-7d">7d —</span>
+      </div>
+    </div>
+    <div class="tf-row">
+      <button class="tf-btn" data-tf="7">7D</button>
+      <button class="tf-btn active" data-tf="30">1M</button>
+      <button class="tf-btn" data-tf="90">3M</button>
+      <button class="tf-btn" data-tf="180">6M</button>
+      <button class="tf-btn" data-tf="365">1Y</button>
+    </div>
+  </div>
+
+  <!-- CHART -->
+  <div class="chart-wrap reveal d1">
+    <div id="chart-container"></div>
+  </div>
+
+  <!-- METRICS ROW -->
+  <div class="metrics-row">
+    <div class="metric-card reveal d1">
+      <div class="mc-label">Fear & Greed</div>
+      <div class="mc-value warn" id="m-fg">—</div>
+    </div>
+    <div class="metric-card reveal d2">
+      <div class="mc-label">Cycle Phase</div>
+      <div class="mc-value" id="m-phase">—</div>
+    </div>
+    <div class="metric-card reveal d3">
+      <div class="mc-label">Risk Level</div>
+      <div class="mc-value" id="m-risk">—</div>
+    </div>
+    <div class="metric-card reveal d4">
+      <div class="mc-label">Long-term Bias</div>
+      <div class="mc-value" id="m-bias">—</div>
+    </div>
+  </div>
+
+  <!-- ANALYSIS: COMMENTARY + PRO -->
+  <div class="analysis-grid">
+
+    <div class="commentary reveal d2">
+      <div class="c-tag">What the chart is saying</div>
+      <div class="phase-badge">
+        <span class="phase-dot"></span>
+        <span id="phase-label">—</span>
+      </div>
+      <p id="commentary-text"></p>
+      <div class="c-footer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Updated with each market session
+      </div>
+    </div>
+
+    <div class="pro-card reveal d3">
+      <div class="pro-tag">Pro</div>
+      <h3>Your plan meets the market</h3>
+      <div class="pro-sub">Context shaped by your strategy, not generic analysis.</div>
+
+      <ul class="pro-features">
+        <li>
+          <span class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#f7931a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+          200-Week MA overlay & distance from mean
+        </li>
+        <li>
+          <span class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#f7931a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg></span>
+          Cycle phase annotations on chart
+        </li>
+        <li>
+          <span class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#f7931a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+          Holder behavior & on-chain context
+        </li>
+        <li>
+          <span class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#f7931a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+          Interpretation aligned to your IPS
+        </li>
+        <li>
+          <span class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#f7931a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>
+          Weekly discipline brief to your inbox
+        </li>
+      </ul>
+
+      <div class="pro-cta-wrap">
+        <button class="pro-cta" onclick="window.location.href='index.html#pricing'">
+          Start 7-day free trial
+        </button>
+        <div class="pro-price-note">Then €4.99/month · Cancel anytime</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── Helpers ──
+const fmtUSD = n => "$" + Math.round(n).toLocaleString();
+const fmtPct = n => (n >= 0 ? "+" : "") + n.toFixed(2) + "%";
+const chgCls = n => n > 0 ? "pos" : n < 0 ? "neg" : "neu";
+
+function positionFromSignals(fg, btc7d) {
+if (fg === null || btc7d === null) return "Accumulation";
+if (fg <= 20 && btc7d <= -10) return "Capitulation";
+if (fg <= 45 && btc7d < 5)   return "Accumulation";
+if (fg <= 75 && btc7d >= 0)  return "Expansion";
+return "Euphoria";
+}
+
+function riskScore(fg, btc24h, btc7d) {
+const vol = (Math.abs(btc24h ?? 0) * 2 + Math.abs(btc7d ?? 0)) * 2;
+return Math.round(Math.max(0, Math.min(100, (fg ?? 50) * 0.50 + Math.min(40, vol))));
+}
+
+function riskLabel(s) {
+if (s >= 75) return "High";
+if (s >= 55) return "Elevated";
+if (s >= 35) return "Normal";
+return "Low";
+}
+
+function biasFrom(pos) {
+return { Capitulation: "Defensive", Accumulation: "Constructive", Expansion: "Cautious", Euphoria: "Defensive" }[pos];
+}
+
+function getCommentary(pos) {
+const c = {
+Capitulation: "Extreme fear dominates. Historically, capitulation punishes panic exits more than patient holders. Noise is at maximum — signal is at minimum. Your thesis doesn't change because the price does.",
+Accumulation: "Bitcoin is consolidating with sentiment compressed and participation low. Historically, this is where long-term holders are built — not where they exit. The structure remains intact. No catalyst is needed for this phase to continue quietly for months.",
+Expansion: "Confidence is returning and participation is growing. Momentum is real, but so is the risk of overexposure. This phase rewards discipline more than aggression. Sizing up because price is rising is a common and costly mistake.",
+Euphoria: "Euphoria is present. Certainty has replaced caution and narratives dominate. Historically this is where risk is highest — not lowest. Protecting what you've built matters more than capturing the final move."
+};
+return c[pos];
+}
+
+// ── Chart setup (runs immediately — no data yet) ──
+const cc = document.getElementById("chart-container");
+
+const chart = LightweightCharts.createChart(cc, {
+layout: {
+background: { type: "solid", color: "transparent" },
+textColor: "rgba(240,237,232,0.40)",
+fontFamily: "'DM Sans', system-ui, sans-serif",
+fontSize: 11,
+},
+grid: {
+vertLines: { color: "rgba(255,255,255,0.025)" },
+horzLines: { color: "rgba(255,255,255,0.025)" },
+},
+crosshair: {
+mode: LightweightCharts.CrosshairMode.Normal,
+vertLine: { color: "rgba(247,147,26,0.30)", width: 1, style: 2, labelBackgroundColor: "#f7931a" },
+horzLine: { color: "rgba(247,147,26,0.30)", width: 1, style: 2, labelBackgroundColor: "#f7931a" },
+},
+rightPriceScale: {
+borderColor: "rgba(255,255,255,0.04)",
+textColor: "rgba(240,237,232,0.30)",
+scaleMargins: { top: 0.08, bottom: 0.06 },
+},
+timeScale: {
+borderColor: "rgba(255,255,255,0.04)",
+textColor: "rgba(240,237,232,0.30)",
+timeVisible: true, secondsVisible: false,
+},
+handleScale: { mouseWheel: true, pinch: true },
+handleScroll: { mouseWheel: true, pressedMouseMove: true, horzTouchDrag: true },
+});
+
+const area = chart.addAreaSeries({
+lineColor: "#f7931a",
+topColor: "rgba(247,147,26,0.15)",
+bottomColor: "rgba(247,147,26,0.0)",
+lineWidth: 2,
+crosshairMarkerVisible: true,
+crosshairMarkerRadius: 4,
+crosshairMarkerBorderColor: "#f7931a",
+crosshairMarkerBackgroundColor: "#06060a",
+priceFormat: { type: "price", precision: 0, minMove: 1 },
+});
+
+function resize() { chart.applyOptions({ width: cc.clientWidth }); }
+window.addEventListener("resize", resize);
+resize();
+
+// ── Timeframe button state ──
+let curTf = 30;
+let allPrices = []; // full 90-day dataset, sliced per timeframe
+
+function loadSlice(days) {
+if (!allPrices.length) return;
+// allPrices is sorted ascending by time
+const cutoff = Math.floor(Date.now() / 1000) - days * 86400;
+const slice  = allPrices.filter(p => p.time >= cutoff);
+area.setData(slice);
+chart.timeScale().fitContent();
+}
+
+document.querySelectorAll(".tf-btn").forEach(b => {
+b.addEventListener("click", () => {
+document.querySelectorAll(".tf-btn").forEach(x => x.classList.remove("active"));
+b.classList.add("active");
+curTf = parseInt(b.dataset.tf);
+loadSlice(curTf);
+});
+});
+
+// ── Populate UI with market data ──
+function populateMetrics(btcPrice, btc24h, btc7d, fg) {
+// Price header
+document.getElementById("hdr-price").textContent = btcPrice ? fmtUSD(btcPrice) : "—";
+
+const el24 = document.getElementById("hdr-24h");
+if (btc24h !== null) {
+el24.textContent = "24h " + fmtPct(btc24h);
+el24.className   = "pill " + chgCls(btc24h);
+}
+
+const el7d = document.getElementById("hdr-7d");
+if (btc7d !== null) {
+el7d.textContent = "7d " + fmtPct(btc7d);
+el7d.className   = "pill " + chgCls(btc7d);
+}
+
+const pos   = positionFromSignals(fg, btc7d);
+const score = riskScore(fg, btc24h, btc7d);
+const risk  = riskLabel(score);
+const bias  = biasFrom(pos);
+
+document.getElementById("m-fg").textContent    = fg !== null ? fg + " / 100" : "—";
+document.getElementById("m-phase").textContent = pos;
+document.getElementById("m-risk").textContent  = risk;
+document.getElementById("m-bias").textContent  = bias;
+
+// Color coding
+const riskEl = document.getElementById("m-risk");
+riskEl.className = "mc-value " + (score >= 65 ? "bad" : score >= 40 ? "warn" : "good");
+
+const fgEl = document.getElementById("m-fg");
+fgEl.className = "mc-value " + (fg >= 65 ? "bad" : fg >= 35 ? "warn" : "bad");
+
+document.getElementById("phase-label").textContent     = pos;
+document.getElementById("commentary-text").textContent = getCommentary(pos);
+}
+
+// ── Live data fetch ──
+async function loadChartData() {
+try {
+const [marketRes, ohlcvRes] = await Promise.all([
+fetch("/api/market-data"),
+fetch("/api/market-ohlcv")
+]);
+
+// Metrics
+if (!marketRes.ok) throw new Error("market-data failed");
+const market = await marketRes.json();
+populateMetrics(market.btcPrice, market.btc24h, market.btc7d, market.fearGreedNow);
+
+// Chart — real OHLCV converted to area series (close price)
+if (!ohlcvRes.ok) throw new Error("market-ohlcv failed");
+const ohlcv = await ohlcvRes.json();
+
+// Convert OHLCV candles → area series points using close price
+// Deduplicate by time (CoinGecko occasionally returns dupes)
+const seen = new Set();
+allPrices = ohlcv.candles
+.filter(c => {
+if (seen.has(c.time)) return false;
+seen.add(c.time);
+return true;
+})
+.map(c => ({ time: c.time, value: c.close }))
+.sort((a, b) => a.time - b.time);
+
+loadSlice(curTf);
+
+} catch (err) {
+console.warn("Chart data load failed:", err.message);
+// Show dashes — don't crash the page
+populateMetrics(null, null, null, null);
+}
+}
+
+// ── Reveal animation ──
+const els = document.querySelectorAll(".reveal");
+const io = new IntersectionObserver(entries => {
+entries.forEach(e => {
+if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+});
+}, { rootMargin: "0px 0px -30px 0px", threshold: 0.05 });
+
+requestAnimationFrame(() => {
+els.forEach(el => {
+if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add("in");
+else io.observe(el);
+});
+});
+
+// ── Also fix the Pro CTA — remove the free trial language ──
+// Find this in your HTML and update it:
+// FROM: "Start 7-day free trial"
+// TO:   "Unlock for €4.99 / month"
+// And the note below it:
+// FROM: "Then €4.99/month · Cancel anytime"
+// TO:   "Cancel anytime · No lock-in"
+
+// ── Init ──
+window.addEventListener("load", loadChartData);
+</script>
+</body>
+</html>

@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bitcoin Mentor — Daily Clarity for Long-Term Holders</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="inner nav-grid">
+    <div class="nav-menu-wrap">
+      <button type="button" class="menu-trigger" id="simpleBtn" aria-expanded="false">
+        <span class="hamburger" aria-hidden="true"><i></i><i></i><i></i></span>
+      </button>
+      <div class="menu-panel" id="simplePanel" role="menu">
+        <a data-scroll="#overview">Overview</a>
+        <a data-scroll="#why">Why it works</a>
+        <a data-scroll="#cycles">Cycles</a>
+        <a data-scroll="#dca">DCA Simulator</a>
+        <a data-scroll="#plan">My Plan</a>
+        <a data-scroll="#pricing">Pricing</a>
+      </div>
+    </div>
+
+    <a class="brand" href="#top">
+      <div class="logo">₿</div>
+      <span>Bitcoin Mentor</span>
+    </a>
+
+    <div class="nav-actions">
+      <div class="nav-price-pill">
+        <span>Pro</span>
+        <strong>€4.99</strong>
+        <span>/mo</span>
+      </div>
+      <button class="btn primary" data-scroll="#pricing">Start Free →</button>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div id="top" class="hero anchor">
+  <div class="wrap">
+    <div class="hero-content reveal">
+      <h1>Stop reacting.<br>Start <em>holding with clarity.</em></h1>
+      <p class="hero-sub">
+        Cycle context, behavioral positioning, and risk-aware guidance —
+        built for people accumulating Bitcoin over years, not chasing it over hours.
+      </p>
+      <div class="hero-ctas">
+        <button class="btn primary lg" data-scroll="#overview">View Today's Market →</button>
+        <button class="btn ghost lg" data-scroll="#why">How it works</button>
+      </div>
+      <p class="hero-micro">Free daily overview · No card required</p>
+    </div>
+
+    <!-- HERO CARD -->
+    <a href="chart.html" class="hero-card reveal" aria-label="Open full Bitcoin chart">
+      <div class="hero-card-inner">
+        <div class="hc-top">
+          <div class="hc-badge">
+            <span class="dot" id="heroDot"></span>
+            <span>Risk: <span data-risk>—</span></span>
+          </div>
+          <span class="hc-updated">Updated daily</span>
+        </div>
+
+        <div class="hc-price-row">
+          <div class="hc-price-col">
+            <span class="hc-pair">Bitcoin (BTC)</span>
+            <span class="hc-price" data-btc-price>—</span>
+            <span class="hc-chg">
+                24h: <span data-btc-24h>—</span>
+                &nbsp;·&nbsp;
+                7d: <span data-btc-7d>—</span>
+              </span>
+          </div>
+          <div class="hc-spark-wrap">
+            <canvas id="heroSpark"></canvas>
+            <div class="hc-spark-cta">
+              <span>Full chart</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="hc-metrics">
+          <div class="hc-metric">
+            <span class="hc-metric-label">Fear & Greed</span>
+            <span class="hc-metric-value" data-fg>—</span>
+          </div>
+          <div class="hc-metric">
+            <span class="hc-metric-label">Risk Level</span>
+            <span class="hc-metric-value" data-risk-level>—</span>
+          </div>
+          <div class="hc-metric">
+            <span class="hc-metric-label">Cycle Phase</span>
+            <span class="hc-metric-value" data-market-position>—</span>
+          </div>
+        </div>
+
+        <div class="hc-divider"></div>
+        <p class="hc-thesis" data-market-thesis>
+          Short-term volatility is noise. Structural positioning is signal.
+        </p>
+      </div>
+    </a>
+  </div>
+</div>
+
+<main>
+
+
+  <!-- OVERVIEW -->
+  <section id="overview" class="anchor">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div>
+          <div class="section-tag">Daily Read</div>
+          <h2>Overview</h2>
+          <p class="lead">A calibrated market read, with calm conviction.</p>
+        </div>
+        <div class="hc-badge"><span class="dot" id="riskDot"></span>&nbsp;Risk:&nbsp;<span data-risk>—</span></div>
+      </div>
+
+      <div class="card reveal">
+        <div class="overview-top">
+          <div>
+            <div class="label-upper">Today's Position</div>
+            <h3 class="overview-title"><span data-market-position>Accumulation</span></h3>
+            <p class="muted" style="margin:8px 0 0 0;"><span data-market-thesis>Volatility is noise. Structure still holds.</span></p>
+          </div>
+          <a class="spark-link" href="chart.html" aria-label="Open Bitcoin chart">
+            <div class="spark-box" id="overviewSparkBox">
+              <canvas id="overviewSpark"></canvas>
+              <span class="spark-overlay">Full chart →</span>
+            </div>
+          </a>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="snapshot-grid">
+          <div class="snap">
+            <div class="muted2">Bitcoin</div>
+            <div class="snap-big" data-btc-price>—</div>
+            <div class="muted">24h: <span data-btc-24h>—</span> · 7d: <span data-btc-7d>—</span></div>
+          </div>
+          <div class="snap">
+            <div class="muted2">Sentiment</div>
+            <div class="snap-big"><span data-fg>—</span></div>
+            <div class="muted">Fear & Greed Index</div>
+          </div>
+          <div class="snap">
+            <div class="muted2">Interpretation</div>
+            <div class="snap-mid" data-interpretation-title>—</div>
+            <div class="muted" data-interpretation-text>—</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="brief-grid">
+          <div>
+            <div class="label-upper">What Changed</div>
+            <ul class="list" id="briefChanged">
+              <li>Exchange flow: slightly elevated.</li>
+              <li>Holder behavior: stable.</li>
+              <li>Volatility: normal for BTC.</li>
+            </ul>
+          </div>
+          <div>
+            <div class="label-upper">What It Means</div>
+            <p class="muted" id="briefMeans" style="margin-top:8px;">Short-term noise increased. Long-term thesis stays intact.</p>
+            <div class="divider"></div>
+            <div class="label-upper">Bias</div>
+            <div class="bias-row">
+              <span class="bias-pill" data-bias>Neutral → Constructive</span>
+              <span class="muted2" data-bias-note>Historically, this is where retail loses conviction.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <button class="cta-wide" type="button" id="ctaPersonalize">Build my strategy</button>
+        <p class="muted2" style="margin-top:10px;text-align:center;font-size:0.82rem;">
+          Free shows the market. Pro maps it to your plan.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- MARKET CYCLES -->
+  <section id="cycles" class="anchor">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div>
+          <div class="section-tag">Cycle Framework</div>
+          <h2>Market Cycles</h2>
+          <p class="lead">Understanding cycles won't make you wealthy. Ignoring them can make you panic.</p>
+        </div>
+      </div>
+
+      <div class="card" style="padding:0; overflow:hidden;">
+        <div class="cycle-grid">
+          <div class="reveal" data-phase="capitulation">
+            <div class="cycle-cell">
+              <div class="label-upper">Phase 1</div>
+              <h3 style="color:#ff6b6b;">Capitulation</h3>
+              <p class="muted">Fear and disbelief. "It's going to zero."</p>
+            </div>
+          </div>
+          <div class="reveal" data-phase="accumulation">
+            <div class="cycle-cell">
+              <div class="label-upper">Phase 2</div>
+              <h3 style="color:#f7931a;">Accumulation</h3>
+              <p class="muted">Quiet rebuilding. Sideways. Nobody cares.</p>
+            </div>
+          </div>
+          <div class="reveal" data-phase="expansion">
+            <div class="cycle-cell">
+              <div class="label-upper">Phase 3</div>
+              <h3 style="color:#34c759;">Expansion</h3>
+              <p class="muted">Confidence returns. FOMO begins to build.</p>
+            </div>
+          </div>
+          <div class="reveal" data-phase="euphoria">
+            <div class="cycle-cell last">
+              <div class="label-upper">Phase 4</div>
+              <h3 style="color:#4da3ff;">Euphoria</h3>
+              <p class="muted">Risk is highest. "This time is different."</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card soft reveal" style="margin-top:14px;">
+        <div class="label-upper">Cycle Detail</div>
+        <h3 id="cycleTitle" style="margin:10px 0 6px 0;">Select a phase above</h3>
+        <p id="cycleFeel" class="muted" style="margin:0;">Each phase has a distinct behavioral signature. Understanding it changes how you read the market.</p>
+        <div class="divider"></div>
+        <div class="muted" style="font-weight:600;">Common mistakes</div>
+        <ul id="cycleMistakes" class="list"></ul>
+        <div class="divider"></div>
+        <div class="muted" style="font-weight:600;">What tends to work better</div>
+        <ul id="cycleBetter" class="list"></ul>
+        <div class="divider"></div>
+        <div class="muted" style="font-weight:600;">Historical framing</div>
+        <p id="cycleExample" class="muted" style="margin:8px 0 0 0;"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- DCA SIMULATOR -->
+  <section id="dca" class="anchor">
+    <div class="wrap">
+      <div class="section-tag">Projection Model</div>
+      <div class="section-head reveal">
+        <div>
+          <h2>DCA Simulator</h2>
+          <p class="lead">Simulate long-term accumulation through disciplined monthly investing.</p>
+        </div>
+        <div class="hc-badge"><span class="dot good"></span><span>Projection tool</span></div>
+      </div>
+
+      <div class="choice-grid">
+        <div class="card span6 reveal">
+          <div class="label-upper">Your Parameters</div>
+          <div class="divider"></div>
+          <label class="muted">Monthly investment ($)</label>
+          <input type="number" id="monthlyInput" placeholder="e.g. 200" class="input-field">
+          <div style="height:14px;"></div>
+          <label class="muted">Time horizon (years)</label>
+          <div class="horizon-selector">
+            <button type="button" class="horizon-btn" data-years="5">5y</button>
+            <button type="button" class="horizon-btn" data-years="10">10y</button>
+            <button type="button" class="horizon-btn" data-years="15">15y</button>
+            <button type="button" class="horizon-btn" data-years="20">20y</button>
+            <button type="button" class="horizon-btn" data-years="25">25y</button>
+            <button type="button" class="horizon-btn" data-years="30">30y</button>
+          </div>
+          <input type="hidden" id="yearsInput">
+          <div class="divider"></div>
+          <div class="mode-toggle">
+            <button class="mode-btn active" data-mode="realistic">Realistic</button>
+            <button class="mode-btn" data-mode="optimistic">Optimistic</button>
+          </div>
+          <button id="runDCA" class="btn primary" style="width:100%;">Run Simulation</button>
+        </div>
+
+        <div id="dcaResultsWrapper" style="display:none;" class="card soft span12 reveal premium-result">
+          <div class="result-summary">
+            <div class="summary-item">
+              <div class="summary-label">Total Invested</div>
+              <div class="summary-value" id="summaryInvested">$0</div>
+            </div>
+            <div class="summary-item highlight">
+              <div class="summary-label">Base Case Value</div>
+              <div class="summary-value" id="summaryBase">$0</div>
+            </div>
+            <div class="summary-item">
+              <div class="summary-label">Return</div>
+              <div class="summary-value" id="summaryReturn">0%</div>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <table class="dca-table">
+            <thead><tr><th>Scenario</th><th>Total Invested</th><th>Portfolio Value</th><th>Return</th></tr></thead>
+            <tbody id="dcaTableBody"></tbody>
+          </table>
+          <div class="chart-title">Portfolio Growth Over Time</div>
+          <div class="chart-container"><canvas id="dcaChart"></canvas></div>
+
+          <div class="dca-hook">
+            <div class="hook-inner">
+              <div class="hook-badge">Hard Truth</div>
+              <h3>The simulation assumes perfect discipline.</h3>
+              <p>It assumes you never panic sell. Never skip DCA. Don't FOMO at the top.</p>
+              <div class="divider"></div>
+              <div class="hook-contrast">
+                <div>
+                  <strong>Without a system</strong>
+                  <ul><li>Emotional buys</li><li>Missed DCA months</li><li>Panic during −40%</li></ul>
+                </div>
+                <div>
+                  <strong>With Bitcoin Mentor Pro</strong>
+                  <ul><li>Cycle-aware guardrails</li><li>Strategy-aligned decisions</li><li>Position sizing discipline</li></ul>
+                </div>
+              </div>
+              <button class="btn primary hook-btn" data-scroll="#plan">Build My Discipline System →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MY PLAN -->
+  <section id="plan" class="anchor">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div>
+          <div class="section-tag">Paid Tier</div>
+          <h2>My Plan</h2>
+          <p class="lead">Declare your strategy. Get guidance that matches what you said you want.</p>
+        </div>
+        <div class="hc-badge"><span class="dot good"></span><span>€4.99 / month</span></div>
+      </div>
+      <div class="choice-grid">
+        <div class="card span6 reveal">
+          <div class="label-upper">Portfolio · v1</div>
+          <div class="divider"></div>
+          <div class="row"><span class="muted">BTC allocation</span><strong>70%</strong></div>
+          <div class="row" style="margin-top:8px;"><span class="muted">Cash allocation</span><strong>30%</strong></div>
+          <div class="divider"></div>
+          <div class="muted" style="margin-bottom:10px;">Strategy</div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <span class="tag-pill active">DCA + dips</span>
+            <span class="tag-pill">Swing profit-taking</span>
+            <span class="tag-pill">Low trading</span>
+          </div>
+          <div class="divider"></div>
+          <button class="btn primary" style="width:100%;" data-scroll="#plan">Create my plan</button>
+        </div>
+        <div class="card soft span6 reveal">
+          <div class="label-upper">Before You Act</div>
+          <div class="divider"></div>
+          <div class="muted">I'm thinking of…</div>
+          <div class="cta-row" style="margin-top:10px;">
+            <button class="btn ghost" style="flex:1;" data-scroll="#decision">Buying</button>
+            <button class="btn ghost" style="flex:1;" data-scroll="#decision">Selling</button>
+          </div>
+          <div class="divider"></div>
+          <p class="muted" style="font-size:0.88rem; margin:0;">Pro users get strategy-aligned suggestions and sizing guidance. No exact prices. No predictions.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DECISION HELPER -->
+  <section id="decision" class="anchor">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div>
+          <div class="section-tag">Behavioral Layer</div>
+          <h2>Decision Helper</h2>
+          <p class="lead">Guidance for swing-style decisions. Context tied to your plan.</p>
+        </div>
+        <div class="hc-badge"><span class="dot warn"></span><span>Example output</span></div>
+      </div>
+      <div class="choice-grid">
+        <div class="card span6 reveal">
+          <div class="row">
+            <strong>Thinking of buying</strong>
+            <div class="hc-badge"><span class="dot warn"></span><span>Late Expansion</span></div>
+          </div>
+          <div class="divider"></div>
+          <div class="muted">Suggested action</div>
+          <div style="margin-top:8px;font-size:1.1rem;font-weight:650;letter-spacing:-0.02em;">Scale in (small add)</div>
+          <ul class="list">
+            <li>You still have cash available — preserve it for better entries.</li>
+            <li>This phase historically punishes aggressive chasing.</li>
+            <li>Fits your "DCA + dips" strategy.</li>
+          </ul>
+        </div>
+        <div class="card soft span6 reveal">
+          <div class="row">
+            <strong>Thinking of selling</strong>
+            <div class="hc-badge"><span class="dot warn"></span><span>Approaching Euphoria</span></div>
+          </div>
+          <div class="divider"></div>
+          <div class="muted">Suggested action</div>
+          <div style="margin-top:8px;font-size:1.1rem;font-weight:650;letter-spacing:-0.02em;">Take partial profit (10–20%)</div>
+          <ul class="list">
+            <li>Build cash buffer for future phases.</li>
+            <li>Aligned with your profit-taking preference.</li>
+            <li>Not a prediction — a discipline framework.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- WHY IT WORKS -->
+  <section id="why" class="anchor">
+    <div class="wrap">
+      <div class="section-eyebrow reveal">Why it works</div>
+      <h2 class="reveal">Three things most Bitcoin apps get wrong.</h2>
+      <div class="feat-grid">
+        <div class="feat-card reveal">
+          <div class="feat-icon">📉</div>
+          <div class="feat-title">Cycle awareness, not predictions</div>
+          <p class="feat-body">Nobody can predict the next candle. But Bitcoin has four well-defined market phases. Knowing where you are changes every decision.</p>
+        </div>
+        <div class="feat-card reveal">
+          <div class="feat-icon">🧠</div>
+          <div class="feat-title">Strategy alignment, not generic advice</div>
+          <p class="feat-body">"Buy the dip" means nothing without context. Guidance matches your declared strategy — DCA, swing, long-term accumulation.</p>
+        </div>
+        <div class="feat-card reveal">
+          <div class="feat-icon">🔇</div>
+          <div class="feat-title">Signal, not noise</div>
+          <p class="feat-body">No alerts for every 3% move. One clear daily read on what matters for your multi-year thesis.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing" class="anchor">
+    <div class="wrap">
+      <div class="section-eyebrow reveal">Pricing</div>
+      <h2 class="reveal">Simple. One price.</h2>
+      <p class="lead reveal">Less than a coffee per month to stop making expensive emotional decisions.</p>
+      <div class="pricing-grid">
+        <div class="pricing-card reveal">
+          <div class="pricing-name">Free</div>
+          <div class="pricing-amt">€0<span> / forever</span></div>
+          <p class="pricing-desc">Daily market overview for anyone.</p>
+          <ul class="pricing-list">
+            <li>Daily Bitcoin overview</li>
+            <li>Fear & Greed index</li>
+            <li>Market cycle phase</li>
+            <li>DCA simulator</li>
+            <li class="missing">Personalized strategy</li>
+            <li class="missing">Decision helper</li>
+            <li class="missing">Portfolio alerts</li>
+          </ul>
+          <button class="btn ghost full-width">Continue Free</button>
+        </div>
+        <div class="pricing-card featured reveal">
+          <div class="pricing-tag">Most popular</div>
+          <div class="pricing-name">Pro</div>
+          <div class="pricing-amt">€4.99<span> / month</span></div>
+          <p class="pricing-desc">Your strategy, aligned with what the market is doing.</p>
+          <ul class="pricing-list">
+            <li>Everything in Free</li>
+            <li>Personalized strategy setup</li>
+            <li>Cycle-aware decision helper</li>
+            <li>Buying & selling guidance</li>
+            <li>Position sizing framework</li>
+            <li>Weekly strategy digest</li>
+            <li>Cancel anytime, no lock-in</li>
+          </ul>
+          <button class="btn primary full-width" data-scroll="#plan">Start for €4.99 / month →</button>
+          <p style="text-align:center;margin-top:10px;font-size:0.78rem;color:var(--muted2);">Cancel anytime · No lock-in</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+<!--EMAIL CAPTURE-->
+<section id="early-access" class="anchor email-capture-section">
+  <div class="wrap">
+    <div class="email-capture-card reveal">
+      <div class="ec-left">
+        <div class="section-tag" style="margin-bottom:10px;">Early Access</div>
+        <h2 style="margin-bottom:10px;">Get notified when Pro launches.</h2>
+        <p class="ec-sub">No spam. One email when it's ready. Unsubscribe anytime.</p>
+        <ul class="ec-perks">
+          <li><span class="ec-check">✓</span> Early access pricing</li>
+          <li><span class="ec-check">✓</span> Weekly market brief (free)</li>
+          <li><span class="ec-check">✓</span> No card required</li>
+        </ul>
+      </div>
+      <div class="ec-right">
+        <div class="ec-form-wrap" id="ecFormWrap">
+          <div class="ec-input-row">
+            <input
+                    type="email"
+                    id="ecEmail"
+                    class="ec-input"
+                    placeholder="your@email.com"
+                    autocomplete="email"
+                    inputmode="email"
+            />
+            <button class="ec-btn" id="ecSubmit" type="button">
+              <span id="ecBtnText">Notify me →</span>
+              <span id="ecBtnSpinner" class="ec-spinner" style="display:none;"></span>
+            </button>
+          </div>
+          <p class="ec-error" id="ecError" style="display:none;"></p>
+        </div>
+        <div class="ec-success" id="ecSuccess" style="display:none;">
+          <div class="ec-success-icon">✓</div>
+          <div>
+            <strong>You're on the list.</strong>
+            <p class="ec-success-sub">We'll reach out when Pro is ready.</p>
+          </div>
+        </div>
+        <p class="ec-count" id="ecCount"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- FINAL CTA -->
+<div class="final-cta">
+  <div class="wrap">
+    <h2 class="reveal">The market will be loud.<br>Your strategy doesn't have to be.</h2>
+    <p class="reveal muted">Start your daily routine with clarity. Not chaos.</p>
+    <button class="btn primary lg reveal" data-scroll="#pricing">Get started for free →</button>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="logo" style="width:22px;height:22px;font-size:0.72rem;">₿</div>
+      <span>Bitcoin Mentor</span>
+    </div>
+    <span>Calm context. No predictions. Educational only. Not financial advice.</span>
+  </div>
+</footer>
+
+</body>
+</html>
