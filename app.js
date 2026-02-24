@@ -28,10 +28,8 @@ async function loadLiveMarketData() {
             fetch("/api/market-history", { cache: "no-store" })
         ]);
 
-        // ── Current data ──
         if (!marketRes.ok) throw new Error("market-data API failed");
         const d = await marketRes.json();
-
         if (!d.btcPrice) throw new Error("market-data returned empty");
 
         btcPrice      = d.btcPrice;
@@ -40,7 +38,6 @@ async function loadLiveMarketData() {
         fearGreedNow  = d.fearGreedNow;
         fearGreedPrev = d.fearGreedPrev;
 
-        // ── Historical sparkline ──
         if (historyRes.ok) {
             const h = await historyRes.json();
             btcSpark7d = Array.isArray(h.prices) && h.prices.length ? h.prices : Array(120).fill(btcPrice);
@@ -78,34 +75,39 @@ function loadFallbackData() {
 }
 
 
+// ===== RENDER =====
+
 function renderOverviewModel() {
-    // Fear & Greed
     document.querySelectorAll("[data-fg]").forEach(el => {
         el.textContent = (fearGreedNow === null) ? "—" : `${fearGreedNow}`;
     });
 
-    const sp1d = pctChange(spxCloseNow, spxClosePrev);
-    const sp7d = pctChange(spxCloseNow, spxClose7dAgo);
+    const sp1d   = pctChange(spxCloseNow, spxClosePrev);
+    const sp7d   = pctChange(spxCloseNow, spxClose7dAgo);
     const spMood = sp1d === null ? null : Math.round(50 + sp1d * 2);
 
-    const pos = positionFromSignals(fearGreedNow, btc7d);
+    // Use smoothed FG (average of today + yesterday) for cycle classification
+    const fgSmoothed = getSmoothedFGFromCache(fearGreedNow, fearGreedPrev);
+    const pos = positionFromSignals(fgSmoothed, btc7d);
+
     document.querySelectorAll("[data-market-position]").forEach(el => el.textContent = pos);
 
     const thesis = thesisFromPosition(pos);
     document.querySelectorAll("[data-market-thesis]").forEach(el => el.textContent = thesis);
 
+    // SPX kept in interpretation only (not risk score)
     const crypto = fearGreedNow === null ? "fear" : cryptoState(fearGreedNow);
     const equity = spMood === null ? "cautious" : equityState(spMood);
     const interp = combinedInterpretation(crypto, equity);
 
     document.querySelectorAll("[data-interpretation-title]").forEach(el => el.textContent = interp.title);
-    document.querySelectorAll("[data-interpretation-text]").forEach(el => el.textContent = interp.text);
+    document.querySelectorAll("[data-interpretation-text]").forEach(el => el.textContent  = interp.text);
 
-    const score = riskScore({ fg: fearGreedNow, spMood, btc24h, btc7d });
+    // Risk score: FG 60% + volatility 40% (no SPX)
+    const score  = riskScore({ fg: fearGreedNow, btc24h, btc7d });
     const rLabel = riskLabel(score);
-    document.querySelectorAll("[data-risk]").forEach(el => el.textContent = rLabel);
 
-    // Risk Level metric (replaced Equity Context)
+    document.querySelectorAll("[data-risk]").forEach(el => el.textContent = rLabel);
     document.querySelectorAll("[data-risk-level]").forEach(el => el.textContent = rLabel);
 
     updateRiskDot(score);
@@ -162,7 +164,6 @@ function pctChange(now, prev) {
     return ((now - prev) / prev) * 100;
 }
 
-
 function updateBTCUI(failed = false) {
     document.querySelectorAll("[data-btc-price]").forEach(el => {
         if (!btcPrice) {
@@ -187,7 +188,6 @@ function updateBTCUI(failed = false) {
     }
 }
 
-
 function drawSparkline(canvasId, points, linewidth = 2) {
     const canvas = document.getElementById(canvasId);
     if (!canvas || !Array.isArray(points)) return;
@@ -209,7 +209,6 @@ function drawSparkline(canvasId, points, linewidth = 2) {
     const max  = Math.max(...data);
     const range = (max - min) || 1;
 
-    // Area fill
     ctx.beginPath();
     data.forEach((v, i) => {
         const x = (i / (data.length - 1)) * (w - pad * 2) + pad;
@@ -226,7 +225,6 @@ function drawSparkline(canvasId, points, linewidth = 2) {
     ctx.fillStyle = grad;
     ctx.fill();
 
-    // Line
     ctx.lineJoin = "round";
     ctx.lineCap  = "round";
     ctx.lineWidth = linewidth;
@@ -269,22 +267,40 @@ function combinedInterpretation(crypto, equity) {
     return { title: 'Neutral Conditions', text: 'Market signals are mixed.' };
 }
 
-function positionFromSignals(fg, btc7d) {
-    if (fg === null || btc7d === null) return "Accumulation";
-    if (fg <= 25 && btc7d <= -5)  return "Capitulation";
-    if (fg <= 25)                  return "Capitulation";  // extreme fear always = capitulation
-    if (fg <= 45 && btc7d < 5)    return "Accumulation";
-    if (fg <= 75 && btc7d >= 0)   return "Expansion";
-    if (fg > 75)                   return "Euphoria";
-    return "Accumulation";  // safe default instead of Euphoria
+
+// ===== CORE LOGIC =====
+
+// Smoothing: average today + yesterday's FG to reduce whiplash
+function getSmoothedFGFromCache(fgNow, fgPrev) {
+    if (fgNow === null) return null;
+    if (fgPrev === null) return fgNow;
+    return (fgNow + fgPrev) / 2;
 }
 
-function riskScore({ fg, spMood, btc24h, btc7d }) {
-    const fgRisk  = fg === null ? 50 : fg;
-    const spRisk  = spMood === null ? 50 : spMood;
-    const vol     = (Math.abs(btc24h ?? 0) * 2 + Math.abs(btc7d ?? 0)) * 2;
+// Cycle phase from smoothed FG + 7d price action
+function positionFromSignals(fg, btc7d) {
+    if (fg === null || btc7d === null) return "Accumulation";
+    if (fg <= 25) return "Capitulation";
+    if (fg <= 45 && btc7d < 5)  return "Accumulation";
+    if (fg <= 75 && btc7d >= 0) return "Expansion";
+    if (fg > 75)                return "Euphoria";
+    return "Accumulation";
+}
+
+// Risk score: FG 60% + asymmetric volatility up to 40%
+// Downside moves weighted 1.5x more than upside
+function riskScore({ fg, btc24h, btc7d }) {
+    const fgRisk = fg === null ? 50 : fg;
+
+    const w24  = (btc24h ?? 0) < 0 ? 1.5 : 1.0;
+    const w7d  = (btc7d  ?? 0) < 0 ? 1.5 : 1.0;
+    const adj24 = Math.abs(btc24h ?? 0) * w24;
+    const adj7d  = Math.abs(btc7d  ?? 0) * w7d;
+
+    const vol     = (adj24 * 1.2 + adj7d) * 1.0;
     const volRisk = Math.max(0, Math.min(40, vol));
-    return Math.round(Math.max(0, Math.min(100, fgRisk * 0.35 + spRisk * 0.25 + volRisk)));
+
+    return Math.round(Math.max(0, Math.min(100, fgRisk * 0.60 + volRisk)));
 }
 
 function riskLabel(score) {
@@ -486,85 +502,97 @@ document.querySelectorAll("[data-phase]").forEach(card => {
 });
 
 
-// ===== BTC PATH GENERATOR =====
+// ===== DCA SIMULATOR =====
 
-function seededRandom(seed) {
-    const x = Math.sin(seed) * 10000;
-    return x - Math.floor(x);
+// mulberry32: proper seeded PRNG — replaces Math.sin hack
+function mulberry32(seed) {
+    let t = seed + 0x6D2B79F5;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
 }
+
+// Growth scenarios — Bitcoin-convicted, labeled honestly
+const DCA_SCENARIOS = [
+    { name: "Conservative", annualGrowth: 0.20 },
+    { name: "Base Case",    annualGrowth: 0.40 },
+    { name: "Bull Case",    annualGrowth: 0.65 }
+];
 
 function generateBTCPath(startPrice, months, annualGrowth, baseSeed) {
     let price = startPrice;
     const prices = [];
+
     for (let i = 0; i < months; i++) {
-        const year = Math.floor(i / 12);
-        const decay = 1 / (1 + year * 0.08);
+        // Growth decay: returns slow as asset matures (~8% per year)
+        const year     = Math.floor(i / 12);
+        const decay    = 1 / (1 + year * 0.08);
         const adjusted = annualGrowth * decay;
-        const monthly = Math.pow(1 + adjusted, 1/12) - 1;
-        const seed = baseSeed + i * 13;
-        const shock = (seededRandom(seed) - 0.5) * 0.10;
+        const monthly  = Math.pow(1 + adjusted, 1 / 12) - 1;
+
+        // Box-Muller transform: converts uniform random → normal distribution
+        // Gives log-normal price shocks with ~15% monthly stdev (realistic for BTC)
+        const u1 = mulberry32(baseSeed + i * 13 + 1);
+        const u2 = mulberry32(baseSeed + i * 13 + 2);
+        const z  = Math.sqrt(-2 * Math.log(Math.max(u1, 1e-10))) * Math.cos(2 * Math.PI * u2);
+        const shock = z * 0.15;
+
         price *= (1 + monthly) * (1 + shock);
-        if (price < startPrice * 0.15) price = startPrice * 0.15;
+        if (price < startPrice * 0.15) price = startPrice * 0.15; // floor at 15%
         prices.push(price);
     }
+
     return prices;
 }
-
-
-// ===== DCA SIMULATION =====
 
 let simulationMode = "optimistic";
 
 async function runDCASimulation(monthly, years) {
     if (!btcPrice) return;
 
-    const months = years * 12;
+    const months        = years * 12;
     const totalInvested = monthly * months;
-    const startPrice = btcPrice;
+    const startPrice    = btcPrice;
+    const baseSeed      = monthly * 17 + years * 31 + (simulationMode === "optimistic" ? 1 : 0) * 101;
 
-    const scenarios = [
-        { name: "Conservative", annualGrowth: 0.12 },
-        { name: "Base Case",    annualGrowth: 0.25 },
-        { name: "Bull Case",    annualGrowth: 0.37 }
-    ];
-
-    const baseSeed = monthly * 17 + years * 31 + (simulationMode === "optimistic" ? 1 : 0) * 101;
     const tableHTML = [];
 
-    scenarios.forEach(scenario => {
+    DCA_SCENARIOS.forEach(scenario => {
         const path = generateBTCPath(startPrice, months, scenario.annualGrowth, baseSeed);
         let btcHeld = 0;
         const history = [];
+
         for (let i = 0; i < months; i++) {
             btcHeld += monthly / path[i];
             history.push(btcHeld * path[i]);
         }
+
         scenario.history = history;
         const finalValue = history[history.length - 1];
         const gain = ((finalValue - totalInvested) / totalInvested) * 100;
+
         tableHTML.push(`
-      <tr>
-        <td>${scenario.name}</td>
-        <td>$${totalInvested.toLocaleString()}</td>
-        <td>$${Math.round(finalValue).toLocaleString()}</td>
-        <td>${gain.toFixed(1)}%</td>
-      </tr>
-    `);
+            <tr>
+                <td>${scenario.name}</td>
+                <td>$${totalInvested.toLocaleString()}</td>
+                <td>$${Math.round(finalValue).toLocaleString()}</td>
+                <td>${gain.toFixed(1)}%</td>
+            </tr>
+        `);
     });
 
-    const base = scenarios.find(s => s.name === "Base Case");
-    const baseFinal = base.history[base.history.length - 1];
+    const base       = DCA_SCENARIOS.find(s => s.name === "Base Case");
+    const baseFinal  = base.history[base.history.length - 1];
     const baseReturn = ((baseFinal - totalInvested) / totalInvested) * 100;
 
     document.getElementById("summaryInvested").textContent = "$" + totalInvested.toLocaleString();
-    document.getElementById("summaryBase").textContent = "$" + Math.round(baseFinal).toLocaleString();
-    document.getElementById("summaryReturn").textContent = baseReturn.toFixed(1) + "%";
-    document.getElementById("dcaTableBody").innerHTML = tableHTML.join("");
+    document.getElementById("summaryBase").textContent     = "$" + Math.round(baseFinal).toLocaleString();
+    document.getElementById("summaryReturn").textContent   = baseReturn.toFixed(1) + "%";
+    document.getElementById("dcaTableBody").innerHTML      = tableHTML.join("");
     document.getElementById("dcaResultsWrapper").style.display = "block";
 
-    renderChart(scenarios, months);
+    renderChart(DCA_SCENARIOS, months);
 }
-
 
 function renderChart(scenarios, months) {
     const canvas = document.getElementById("dcaChart");
@@ -631,7 +659,7 @@ document.getElementById("runDCA").addEventListener("click", () => {
 
 // ===== INIT =====
 window.addEventListener("load", async () => {
-    await loadLiveMarketData();          // <-- was loadStaticMarketData()
+    await loadLiveMarketData();
 
     document.getElementById("monthlyInput").value = 500;
     document.getElementById("yearsInput").value = 10;
@@ -654,7 +682,7 @@ if (cta) {
         window.location.href = "pro.html";
     });
 }
-// Handle #hash on page load (e.g. from chart.html linking to #pricing)
+
 window.addEventListener("load", () => {
     if (window.location.hash) {
         const target = document.querySelector(window.location.hash);
@@ -667,15 +695,9 @@ window.addEventListener("load", () => {
 });
 
 (function () {
-    // ─── CONFIG ───────────────────────────────────────────
-    // Paste your Mailchimp form action URL here, e.g.:
-    // "https://yoursite.us21.list-manage.com/subscribe/post?u=xxx&id=yyy"
-    // Set to null to run in local-only mode (no API call)
     const MAILCHIMP_URL = "https://gmail.us12.list-manage.com/subscribe/post?u=a75a32e60fbdc38daa0588bc5&id=1e183e547c&f_id=009f9ee0f0";
-    // Fake count to show social proof (update once real signups)
     const SHOW_COUNT = false;
-    const FAKE_COUNT = 47; // e.g. "47 people already signed up"
-    // ──────────────────────────────────────────────────────
+    const FAKE_COUNT = 47;
 
     const input    = document.getElementById("ecEmail");
     const btn      = document.getElementById("ecSubmit");
@@ -688,12 +710,10 @@ window.addEventListener("load", () => {
 
     if (!input || !btn) return;
 
-    // Show fake count if enabled
     if (SHOW_COUNT && countEl) {
         countEl.textContent = `${FAKE_COUNT} people already on the list`;
     }
 
-    // Check if already signed up (persists across sessions)
     if (localStorage.getItem("btcm_signed_up") === "1") {
         showSuccess();
     }
@@ -741,9 +761,6 @@ window.addEventListener("load", () => {
 
         try {
             if (MAILCHIMP_URL) {
-                // ── Mailchimp JSONP submit ──
-                // Mailchimp's embedded forms use JSONP to avoid CORS.
-                // We swap /post? → /post-json? and add &c=callback
                 const url = MAILCHIMP_URL
                         .replace("/post?", "/post-json?")
                     + `&EMAIL=${encodeURIComponent(email)}&c=mcCallback`;
@@ -761,7 +778,6 @@ window.addEventListener("load", () => {
                     setTimeout(() => reject(new Error("Request timed out.")), 8000);
                 });
             } else {
-                // ── Local-only mode: just wait a beat ──
                 await new Promise(r => setTimeout(r, 600));
             }
 
@@ -769,7 +785,6 @@ window.addEventListener("load", () => {
             showSuccess();
 
         } catch (err) {
-            // Strip Mailchimp HTML tags from error messages
             const clean = (err.message || "Something went wrong.")
                 .replace(/<[^>]+>/g, "")
                 .replace(/0 - /g, "")
@@ -779,7 +794,6 @@ window.addEventListener("load", () => {
         }
     });
 
-    // Submit on Enter key
     input.addEventListener("keydown", (e) => {
         if (e.key === "Enter") btn.click();
     });

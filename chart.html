@@ -490,89 +490,103 @@
     </div>
   </div>
 </div>
+
 <script>
-// ── Helpers ──
-const fmtUSD = n => "$" + Math.round(n).toLocaleString();
-const fmtPct = n => (n >= 0 ? "+" : "") + n.toFixed(2) + "%";
-const chgCls = n => n > 0 ? "pos" : n < 0 ? "neg" : "neu";
+  // ── Helpers ──
+  const fmtUSD = n => "$" + Math.round(n).toLocaleString();
+  const fmtPct = n => (n >= 0 ? "+" : "") + n.toFixed(2) + "%";
+  const chgCls = n => n > 0 ? "pos" : n < 0 ? "neg" : "neu";
 
-// ── Identical to app.js ──
-function positionFromSignals(fg, btc7d) {
+  // ── Smoothing: average today + yesterday to reduce whiplash ──
+  function getSmoothedFGFromCache(fgNow, fgPrev) {
+    if (fgNow === null) return null;
+    if (fgPrev === null) return fgNow;
+    return (fgNow + fgPrev) / 2;
+  }
+
+  // ── Cycle phase — fed smoothed FG ──
+  function positionFromSignals(fg, btc7d) {
     if (fg === null || btc7d === null) return "Accumulation";
-    if (fg <= 25 && btc7d <= -5)  return "Capitulation";
-    if (fg <= 25)                  return "Capitulation";
-    if (fg <= 45 && btc7d < 5)    return "Accumulation";
-    if (fg <= 75 && btc7d >= 0)   return "Expansion";
-    if (fg > 75)                   return "Euphoria";
+    if (fg <= 25) return "Capitulation";
+    if (fg <= 45 && btc7d < 5)  return "Accumulation";
+    if (fg <= 75 && btc7d >= 0) return "Expansion";
+    if (fg > 75)                return "Euphoria";
     return "Accumulation";
-}
+  }
 
-function riskScore({ fg, spMood, btc24h, btc7d }) {
-    const fgRisk  = fg === null ? 50 : fg;
-    const spRisk  = spMood === null ? 50 : spMood;
-    const vol     = (Math.abs(btc24h ?? 0) * 2 + Math.abs(btc7d ?? 0)) * 2;
+  // ── Risk score: FG 60% + asymmetric volatility up to 40% ──
+  function riskScore({ fg, btc24h, btc7d }) {
+    const fgRisk = fg === null ? 50 : fg;
+
+    const w24  = (btc24h ?? 0) < 0 ? 1.5 : 1.0;
+    const w7d  = (btc7d  ?? 0) < 0 ? 1.5 : 1.0;
+    const adj24 = Math.abs(btc24h ?? 0) * w24;
+    const adj7d  = Math.abs(btc7d  ?? 0) * w7d;
+
+    const vol     = (adj24 * 1.2 + adj7d) * 1.0;
     const volRisk = Math.max(0, Math.min(40, vol));
-    return Math.round(Math.max(0, Math.min(100, fgRisk * 0.35 + spRisk * 0.25 + volRisk)));
-}
 
-function riskLabel(score) {
+    return Math.round(Math.max(0, Math.min(100, fgRisk * 0.60 + volRisk)));
+  }
+
+  function riskLabel(score) {
     if (score >= 75) return "High";
     if (score >= 55) return "Elevated";
     if (score >= 35) return "Normal";
     return "Low";
-}
+  }
 
-function biasFromPosition(pos, risk) {
+  function biasFromPosition(pos, risk) {
     if (pos === "Capitulation") return "Defensive → Patient";
     if (pos === "Accumulation") return risk >= 60 ? "Neutral → Careful" : "Neutral → Constructive";
     if (pos === "Expansion")    return risk >= 70 ? "Constructive → Cautious" : "Constructive";
     return "Cautious → Defensive";
-}
+  }
 
-function getCommentary(pos) {
+  function getCommentary(pos) {
     const c = {
-        Capitulation: "Extreme fear dominates. Historically, capitulation punishes panic exits more than patient holders. Noise is at maximum — signal is at minimum. Your thesis doesn't change because the price does.",
-        Accumulation: "Bitcoin is consolidating with sentiment compressed and participation low. Historically, this is where long-term holders are built — not where they exit. The structure remains intact. No catalyst is needed for this phase to continue quietly for months.",
-        Expansion: "Confidence is returning and participation is growing. Momentum is real, but so is the risk of overexposure. This phase rewards discipline more than aggression. Sizing up because price is rising is a common and costly mistake.",
-        Euphoria: "Euphoria is present. Certainty has replaced caution and narratives dominate. Historically this is where risk is highest — not lowest. Protecting what you've built matters more than capturing the final move."
+      Capitulation: "Extreme fear dominates. Historically, capitulation punishes panic exits more than patient holders. Noise is at maximum — signal is at minimum. Your thesis doesn't change because the price does.",
+      Accumulation: "Bitcoin is consolidating with sentiment compressed and participation low. Historically, this is where long-term holders are built — not where they exit. The structure remains intact. No catalyst is needed for this phase to continue quietly for months.",
+      Expansion: "Confidence is returning and participation is growing. Momentum is real, but so is the risk of overexposure. This phase rewards discipline more than aggression. Sizing up because price is rising is a common and costly mistake.",
+      Euphoria: "Euphoria is present. Certainty has replaced caution and narratives dominate. Historically this is where risk is highest — not lowest. Protecting what you've built matters more than capturing the final move."
     };
     return c[pos];
-}
+  }
 
-// ── Chart setup ──
-const cc = document.getElementById("chart-container");
+  // ── Chart setup ──
+  const cc = document.getElementById("chart-container");
 
-const chart = LightweightCharts.createChart(cc, {
+  const chart = LightweightCharts.createChart(cc, {
     layout: {
-        background: { type: "solid", color: "transparent" },
-        textColor: "rgba(240,237,232,0.40)",
-        fontFamily: "'DM Sans', system-ui, sans-serif",
-        fontSize: 11,
+      background: { type: "solid", color: "transparent" },
+      textColor: "rgba(240,237,232,0.40)",
+      fontFamily: "'DM Sans', system-ui, sans-serif",
+      fontSize: 11,
     },
     grid: {
-        vertLines: { color: "rgba(255,255,255,0.025)" },
-        horzLines: { color: "rgba(255,255,255,0.025)" },
+      vertLines: { color: "rgba(255,255,255,0.025)" },
+      horzLines: { color: "rgba(255,255,255,0.025)" },
     },
     crosshair: {
-        mode: LightweightCharts.CrosshairMode.Normal,
-        vertLine: { color: "rgba(247,147,26,0.30)", width: 1, style: 2, labelBackgroundColor: "#f7931a" },
-        horzLine: { color: "rgba(247,147,26,0.30)", width: 1, style: 2, labelBackgroundColor: "#f7931a" },
+      mode: LightweightCharts.CrosshairMode.Normal,
+      vertLine: { color: "rgba(247,147,26,0.30)", width: 1, style: 2, labelBackgroundColor: "#f7931a" },
+      horzLine: { color: "rgba(247,147,26,0.30)", width: 1, style: 2, labelBackgroundColor: "#f7931a" },
     },
     rightPriceScale: {
-        borderColor: "rgba(255,255,255,0.04)",
-        textColor: "rgba(240,237,232,0.30)",
-        scaleMargins: { top: 0.08, bottom: 0.06 },
+      borderColor: "rgba(255,255,255,0.04)",
+      textColor: "rgba(240,237,232,0.30)",
+      scaleMargins: { top: 0.08, bottom: 0.06 },
     },
     timeScale: {
-        borderColor: "rgba(255,255,255,0.04)",
-        textColor: "rgba(240,237,232,0.30)",
-        timeVisible: true, secondsVisible: false,
+      borderColor: "rgba(255,255,255,0.04)",
+      textColor: "rgba(240,237,232,0.30)",
+      timeVisible: true, secondsVisible: false,
     },
     handleScale: { mouseWheel: true, pinch: true },
     handleScroll: { mouseWheel: true, pressedMouseMove: true, horzTouchDrag: true },
-});
+  });
 
-const area = chart.addAreaSeries({
+  const area = chart.addAreaSeries({
     lineColor: "#f7931a",
     topColor: "rgba(247,147,26,0.15)",
     bottomColor: "rgba(247,147,26,0.0)",
@@ -582,58 +596,59 @@ const area = chart.addAreaSeries({
     crosshairMarkerBorderColor: "#f7931a",
     crosshairMarkerBackgroundColor: "#06060a",
     priceFormat: { type: "price", precision: 0, minMove: 1 },
-});
+  });
 
-function resize() { chart.applyOptions({ width: cc.clientWidth }); }
-window.addEventListener("resize", resize);
-resize();
+  function resize() { chart.applyOptions({ width: cc.clientWidth }); }
+  window.addEventListener("resize", resize);
+  resize();
 
-// ── Timeframe button state ──
-let curTf = 30;
-let allPrices = [];
+  // ── Timeframe button state ──
+  let curTf = 30;
+  let allPrices = [];
 
-function loadSlice(days) {
+  function loadSlice(days) {
     if (!allPrices.length) return;
     const cutoff = Math.floor(Date.now() / 1000) - days * 86400;
     const slice  = allPrices.filter(p => p.time >= cutoff);
     area.setData(slice);
     chart.timeScale().fitContent();
-}
+  }
 
-document.querySelectorAll(".tf-btn").forEach(b => {
+  document.querySelectorAll(".tf-btn").forEach(b => {
     b.addEventListener("click", () => {
-        document.querySelectorAll(".tf-btn").forEach(x => x.classList.remove("active"));
-        b.classList.add("active");
-        curTf = parseInt(b.dataset.tf);
-        loadSlice(curTf);
+      document.querySelectorAll(".tf-btn").forEach(x => x.classList.remove("active"));
+      b.classList.add("active");
+      curTf = parseInt(b.dataset.tf);
+      loadSlice(curTf);
     });
-});
+  });
 
-// ── Populate UI — uses same logic as app.js ──
-function populateMetrics(btcPrice, btc24h, btc7d, fg) {
+  // ── Populate UI ──
+  function populateMetrics(btcPrice, btc24h, btc7d, fg, fgPrev) {
     document.getElementById("hdr-price").textContent = btcPrice ? fmtUSD(btcPrice) : "—";
 
     const el24 = document.getElementById("hdr-24h");
     if (typeof btc24h === "number") {
-        el24.textContent = "24h " + fmtPct(btc24h);
-        el24.className   = "pill " + chgCls(btc24h);
+      el24.textContent = "24h " + fmtPct(btc24h);
+      el24.className   = "pill " + chgCls(btc24h);
     } else {
-        el24.textContent = "24h —";
-        el24.className   = "pill neu";
+      el24.textContent = "24h —";
+      el24.className   = "pill neu";
     }
 
     const el7d = document.getElementById("hdr-7d");
     if (typeof btc7d === "number") {
-        el7d.textContent = "7d " + fmtPct(btc7d);
-        el7d.className   = "pill " + chgCls(btc7d);
+      el7d.textContent = "7d " + fmtPct(btc7d);
+      el7d.className   = "pill " + chgCls(btc7d);
     } else {
-        el7d.textContent = "7d —";
-        el7d.className   = "pill neu";
+      el7d.textContent = "7d —";
+      el7d.className   = "pill neu";
     }
 
-    // spMood: null → uses same 50 fallback as app.js
-    const pos   = positionFromSignals(fg ?? null, btc7d ?? null);
-    const score = riskScore({ fg: fg ?? null, spMood: null, btc24h: btc24h ?? null, btc7d: btc7d ?? null });
+    // Use smoothed FG for cycle classification — same as app.js
+    const fgSmoothed = getSmoothedFGFromCache(fg ?? null, fgPrev ?? null);
+    const pos   = positionFromSignals(fgSmoothed, btc7d ?? null);
+    const score = riskScore({ fg: fg ?? null, btc24h: btc24h ?? null, btc7d: btc7d ?? null });
     const risk  = riskLabel(score);
     const bias  = biasFromPosition(pos, score);
 
@@ -650,60 +665,61 @@ function populateMetrics(btcPrice, btc24h, btc7d, fg) {
 
     document.getElementById("phase-label").textContent     = pos;
     document.getElementById("commentary-text").textContent = getCommentary(pos);
-}
+  }
 
-// ── Live data fetch ──
-async function loadChartData() {
+  // ── Live data fetch ──
+  async function loadChartData() {
     try {
-        const [marketRes, ohlcvRes] = await Promise.all([
-            fetch("/api/market-data", { cache: "no-store" }),
-            fetch("/api/market-ohlcv", { cache: "no-store" })
-        ]);
+      const [marketRes, ohlcvRes] = await Promise.all([
+        fetch("/api/market-data", { cache: "no-store" }),
+        fetch("/api/market-ohlcv", { cache: "no-store" })
+      ]);
 
-        if (!marketRes.ok) throw new Error("market-data failed");
-        const market = await marketRes.json();
-        if (!market.btcPrice) throw new Error("market-data returned empty");
+      if (!marketRes.ok) throw new Error("market-data failed");
+      const market = await marketRes.json();
+      if (!market.btcPrice) throw new Error("market-data returned empty");
 
-        populateMetrics(market.btcPrice, market.btc24h, market.btc7d, market.fearGreedNow);
+      // Pass fgPrev so chart.html can also smooth FG
+      populateMetrics(market.btcPrice, market.btc24h, market.btc7d, market.fearGreedNow, market.fearGreedPrev);
 
-        if (!ohlcvRes.ok) throw new Error("market-ohlcv failed");
-        const ohlcv = await ohlcvRes.json();
+      if (!ohlcvRes.ok) throw new Error("market-ohlcv failed");
+      const ohlcv = await ohlcvRes.json();
 
-        const seen = new Set();
-        allPrices = ohlcv.candles
-            .filter(c => {
+      const seen = new Set();
+      allPrices = ohlcv.candles
+              .filter(c => {
                 if (seen.has(c.time)) return false;
                 seen.add(c.time);
                 return true;
-            })
-            .map(c => ({ time: c.time, value: c.close }))
-            .sort((a, b) => a.time - b.time);
+              })
+              .map(c => ({ time: c.time, value: c.close }))
+              .sort((a, b) => a.time - b.time);
 
-        loadSlice(curTf);
+      loadSlice(curTf);
 
     } catch (err) {
-        console.warn("Chart data load failed:", err.message);
-        populateMetrics(null, null, null, null);
+      console.warn("Chart data load failed:", err.message);
+      populateMetrics(null, null, null, null, null);
     }
-}
+  }
 
-// ── Reveal animation ──
-const els = document.querySelectorAll(".reveal");
-const io = new IntersectionObserver(entries => {
+  // ── Reveal animation ──
+  const els = document.querySelectorAll(".reveal");
+  const io = new IntersectionObserver(entries => {
     entries.forEach(e => {
-        if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+      if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
     });
-}, { rootMargin: "0px 0px -30px 0px", threshold: 0.05 });
+  }, { rootMargin: "0px 0px -30px 0px", threshold: 0.05 });
 
-requestAnimationFrame(() => {
+  requestAnimationFrame(() => {
     els.forEach(el => {
-        if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add("in");
-        else io.observe(el);
+      if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add("in");
+      else io.observe(el);
     });
-});
+  });
 
-// ── Init ──
-window.addEventListener("load", loadChartData);
+  // ── Init ──
+  window.addEventListener("load", loadChartData);
 </script>
 </body>
 </html>
