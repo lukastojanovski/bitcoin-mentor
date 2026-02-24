@@ -2,7 +2,7 @@
 module.exports = async function handler(req, res) {
   try {
     const response = await fetch(
-      "https://api.coingecko.com/api/v3/coins/bitcoin/ohlc?vs_currency=usd&days=90"
+      "https://api.coingecko.com/api/v3/coins/bitcoin/ohlc?vs_currency=usd&days=365"
     );
 
     if (!response.ok) throw new Error("CoinGecko OHLC request failed");
