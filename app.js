@@ -527,7 +527,7 @@ function generateBTCPath(startPrice, months, annualGrowth, baseSeed) {
         // Growth decay: returns slow 5% per year as asset matures
         const year     = Math.floor(i / 12);
         const decay    = 1 / (1 + year * 0.03);
-        const adjusted = annualGrowth * decay;
+        const adjusted = Math.max(annualGrowth * decay, 0.10);
         const monthly  = Math.pow(1 + adjusted, 1 / 12) - 1;
 
         // Box-Muller → normal distribution, scaled to 7% monthly stdev
