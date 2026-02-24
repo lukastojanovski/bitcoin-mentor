@@ -514,9 +514,9 @@ function mulberry32(seed) {
 
 // Growth scenarios — Bitcoin-convicted, labeled honestly
 const DCA_SCENARIOS = [
-    { name: "Conservative", annualGrowth: 0.20 },
+    { name: "Conservative", annualGrowth: 0.25 },
     { name: "Base Case",    annualGrowth: 0.40 },
-    { name: "Bull Case",    annualGrowth: 0.65 }
+    { name: "Bull Case",    annualGrowth: 0.50 }
 ];
 
 function generateBTCPath(startPrice, months, annualGrowth, baseSeed) {
@@ -526,7 +526,7 @@ function generateBTCPath(startPrice, months, annualGrowth, baseSeed) {
     for (let i = 0; i < months; i++) {
         // Growth decay: returns slow 5% per year as asset matures
         const year     = Math.floor(i / 12);
-        const decay    = 1 / (1 + year * 0.05);
+        const decay    = 1 / (1 + year * 0.03);
         const adjusted = annualGrowth * decay;
         const monthly  = Math.pow(1 + adjusted, 1 / 12) - 1;
 
