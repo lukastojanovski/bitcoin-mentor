@@ -634,7 +634,7 @@ function populateMetrics(btcPrice, btc24h, btc7d, fg) {
   }
 
   const pos   = positionFromSignals(fg, btc7d);
-  const score = riskScore({ fg: fg ?? null, spMood: 50, btc24h: btc24h ?? null, btc7d: btc7d ?? null });
+  const score = riskScore({ fg: fg ?? null, spMood: null, btc24h: btc24h ?? null, btc7d: btc7d ?? null });
   const risk  = riskLabel(score);
   const bias = biasFromPosition(pos, score);
 
