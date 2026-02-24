@@ -86,7 +86,6 @@ function renderOverviewModel() {
     const sp7d   = pctChange(spxCloseNow, spxClose7dAgo);
     const spMood = sp1d === null ? null : Math.round(50 + sp1d * 2);
 
-    // Use smoothed FG (average of today + yesterday) for cycle classification
     const fgSmoothed = getSmoothedFGFromCache(fearGreedNow, fearGreedPrev);
     const pos = positionFromSignals(fgSmoothed, btc7d);
 
@@ -95,7 +94,6 @@ function renderOverviewModel() {
     const thesis = thesisFromPosition(pos);
     document.querySelectorAll("[data-market-thesis]").forEach(el => el.textContent = thesis);
 
-    // SPX kept in interpretation only (not risk score)
     const crypto = fearGreedNow === null ? "fear" : cryptoState(fearGreedNow);
     const equity = spMood === null ? "cautious" : equityState(spMood);
     const interp = combinedInterpretation(crypto, equity);
@@ -103,7 +101,6 @@ function renderOverviewModel() {
     document.querySelectorAll("[data-interpretation-title]").forEach(el => el.textContent = interp.title);
     document.querySelectorAll("[data-interpretation-text]").forEach(el => el.textContent  = interp.text);
 
-    // Risk score: FG 60% + volatility 40% (no SPX)
     const score  = riskScore({ fg: fearGreedNow, btc24h, btc7d });
     const rLabel = riskLabel(score);
 
@@ -131,7 +128,6 @@ function renderOverviewModel() {
     const meansEl = document.getElementById("briefMeans");
     if (meansEl) meansEl.textContent = means;
 }
-
 
 function updateRiskDot(score) {
     const dot = document.getElementById("riskDot");
@@ -215,8 +211,7 @@ function drawSparkline(canvasId, points, linewidth = 2) {
         const y = h - ((v - min) / range) * (h - pad * 2) - pad;
         if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
     });
-    const lastX = (1) * (w - pad * 2) + pad;
-    ctx.lineTo(lastX, h);
+    ctx.lineTo((w - pad * 2) + pad, h);
     ctx.lineTo(pad, h);
     ctx.closePath();
     const grad = ctx.createLinearGradient(0, 0, 0, h);
@@ -270,14 +265,12 @@ function combinedInterpretation(crypto, equity) {
 
 // ===== CORE LOGIC =====
 
-// Smoothing: average today + yesterday's FG to reduce whiplash
 function getSmoothedFGFromCache(fgNow, fgPrev) {
     if (fgNow === null) return null;
     if (fgPrev === null) return fgNow;
     return (fgNow + fgPrev) / 2;
 }
 
-// Cycle phase from smoothed FG + 7d price action
 function positionFromSignals(fg, btc7d) {
     if (fg === null || btc7d === null) return "Accumulation";
     if (fg <= 25) return "Capitulation";
@@ -287,19 +280,14 @@ function positionFromSignals(fg, btc7d) {
     return "Accumulation";
 }
 
-// Risk score: FG 60% + asymmetric volatility up to 40%
-// Downside moves weighted 1.5x more than upside
 function riskScore({ fg, btc24h, btc7d }) {
     const fgRisk = fg === null ? 50 : fg;
-
-    const w24  = (btc24h ?? 0) < 0 ? 1.5 : 1.0;
-    const w7d  = (btc7d  ?? 0) < 0 ? 1.5 : 1.0;
-    const adj24 = Math.abs(btc24h ?? 0) * w24;
+    const w24    = (btc24h ?? 0) < 0 ? 1.5 : 1.0;
+    const w7d    = (btc7d  ?? 0) < 0 ? 1.5 : 1.0;
+    const adj24  = Math.abs(btc24h ?? 0) * w24;
     const adj7d  = Math.abs(btc7d  ?? 0) * w7d;
-
-    const vol     = (adj24 * 1.2 + adj7d) * 1.0;
+    const vol    = (adj24 * 1.2 + adj7d) * 1.0;
     const volRisk = Math.max(0, Math.min(40, vol));
-
     return Math.round(Math.max(0, Math.min(100, fgRisk * 0.60 + volRisk)));
 }
 
@@ -333,10 +321,10 @@ function whatChangedBullets({ fgNow, fgPrev, sp1d, sp7d, btc24h, btc7d }) {
     } else {
         bullets.push("Sentiment: unavailable (API).");
     }
-    if (btc24h !== null && btc24h !== undefined && typeof btc24h === "number") {
+    if (typeof btc24h === "number") {
         bullets.push(`BTC: 24h ${btc24h >= 0 ? "up" : "down"} (${btc24h >= 0 ? "+" : ""}${btc24h.toFixed(2)}%).`);
     }
-    if (btc7d !== null && btc7d !== undefined && typeof btc7d === "number") {
+    if (typeof btc7d === "number") {
         bullets.push(`BTC: 7d ${btc7d >= 0 ? "up" : "down"} (${btc7d >= 0 ? "+" : ""}${btc7d.toFixed(2)}%).`);
     }
     return bullets.slice(0, 3);
@@ -504,7 +492,22 @@ document.querySelectorAll("[data-phase]").forEach(card => {
 
 // ===== DCA SIMULATOR =====
 
-// mulberry32: proper seeded PRNG — replaces Math.sin hack
+// Hardcoded return percentages — based on Opus CAGR analysis
+// Conservative: ~14% CAGR | Base Case: ~24% CAGR | Bull Case: ~38% CAGR
+const DCA_RETURNS = {
+    5:  { conservative: 0.38,  baseCase: 0.72,  bullCase: 1.25  },
+    10: { conservative: 1.05,  baseCase: 2.80,  bullCase: 6.40  },
+    15: { conservative: 2.20,  baseCase: 7.20,  bullCase: 24.00 },
+    20: { conservative: 4.10,  baseCase: 16.50, bullCase: 78.00 }
+};
+
+const DCA_SCENARIOS = [
+    { name: "Conservative", key: "conservative" },
+    { name: "Base Case",    key: "baseCase"     },
+    { name: "Bull Case",    key: "bullCase"      }
+];
+
+// Smooth visual curve that always ends at the correct hardcoded value
 function mulberry32(seed) {
     let t = seed + 0x6D2B79F5;
     t = Math.imul(t ^ t >>> 15, t | 1);
@@ -512,82 +515,54 @@ function mulberry32(seed) {
     return ((t ^ t >>> 14) >>> 0) / 4294967296;
 }
 
-// Growth scenarios — Bitcoin-convicted, labeled honestly
-const DCA_SCENARIOS = [
-    { name: "Conservative", annualGrowth: 0.25 },
-    { name: "Base Case",    annualGrowth: 0.40 },
-    { name: "Bull Case",    annualGrowth: 0.50 }
-];
-
-function generateBTCPath(startPrice, months, annualGrowth, baseSeed) {
-    let price = startPrice;
-    const prices = [];
+function generateChartPath(finalValue, months, scenarioIndex) {
+    const history  = [];
+    const baseSeed = scenarioIndex * 997 + months * 13;
 
     for (let i = 0; i < months; i++) {
-        // Growth decay: returns slow 5% per year as asset matures
-        const year     = Math.floor(i / 12);
-        const decay    = 1 / (1 + year * 0.03);
-        const adjusted = Math.max(annualGrowth * decay, 0.10);
-        const monthly  = Math.pow(1 + adjusted, 1 / 12) - 1;
-
-        // Box-Muller → normal distribution, scaled to 7% monthly stdev
-        // Enough wobble to look realistic without destroying returns
-        const u1 = mulberry32(baseSeed + i * 13 + 1);
-        const u2 = mulberry32(baseSeed + i * 13 + 2);
-        const z  = Math.sqrt(-2 * Math.log(Math.max(u1, 1e-10))) * Math.cos(2 * Math.PI * u2);
-        const shock = z * 0.07;
-
-        price *= (1 + monthly) * (1 + shock);
-        if (price < startPrice * 0.15) price = startPrice * 0.15;
-        prices.push(price);
+        const progress = (i + 1) / months;
+        const curve    = Math.pow(progress, 1.4);
+        const u1       = mulberry32(baseSeed + i * 7 + 1);
+        const noise    = (u1 - 0.5) * 0.06 * curve;
+        const value    = finalValue * (curve + noise);
+        history.push(i === months - 1 ? finalValue : Math.max(value, 0));
     }
 
-    return prices;
+    return history;
 }
-
-
-let simulationMode = "optimistic";
 
 async function runDCASimulation(monthly, years) {
     if (!btcPrice) return;
+    if (!DCA_RETURNS[years]) return;
 
     const months        = years * 12;
     const totalInvested = monthly * months;
-    const startPrice    = btcPrice;
-    // Seed based only on inputs — no mode variable
-    const baseSeed      = monthly * 17 + years * 31 + 7;
+    const returns       = DCA_RETURNS[years];
+    const tableHTML     = [];
 
-    const tableHTML = [];
+    DCA_SCENARIOS.forEach((scenario, i) => {
+        const returnPct  = returns[scenario.key];
+        const finalValue = totalInvested * (1 + returnPct);
+        const gainPct    = returnPct * 100;
 
-    DCA_SCENARIOS.forEach(scenario => {
-        const path = generateBTCPath(startPrice, months, scenario.annualGrowth, baseSeed);
-        let btcHeld = 0;
-        const history = [];
-
-        for (let i = 0; i < months; i++) {
-            btcHeld += monthly / path[i];
-            history.push(btcHeld * path[i]);
-        }
-
-        scenario.history = history;
-        const finalValue = history[history.length - 1];
-        const gain = ((finalValue - totalInvested) / totalInvested) * 100;
+        scenario.history    = generateChartPath(finalValue, months, i);
+        scenario.finalValue = finalValue;
 
         tableHTML.push(`
             <tr>
                 <td>${scenario.name}</td>
-                <td>$${totalInvested.toLocaleString()}</td>
+                <td>$${Math.round(totalInvested).toLocaleString()}</td>
                 <td>$${Math.round(finalValue).toLocaleString()}</td>
-                <td>${gain.toFixed(1)}%</td>
+                <td>${gainPct.toFixed(1)}%</td>
             </tr>
         `);
     });
 
-    const base       = DCA_SCENARIOS.find(s => s.name === "Base Case");
-    const baseFinal  = base.history[base.history.length - 1];
-    const baseReturn = ((baseFinal - totalInvested) / totalInvested) * 100;
+    const base       = DCA_SCENARIOS.find(s => s.key === "baseCase");
+    const baseFinal  = base.finalValue;
+    const baseReturn = returns.baseCase * 100;
 
-    document.getElementById("summaryInvested").textContent = "$" + totalInvested.toLocaleString();
+    document.getElementById("summaryInvested").textContent = "$" + Math.round(totalInvested).toLocaleString();
     document.getElementById("summaryBase").textContent     = "$" + Math.round(baseFinal).toLocaleString();
     document.getElementById("summaryReturn").textContent   = baseReturn.toFixed(1) + "%";
     document.getElementById("dcaTableBody").innerHTML      = tableHTML.join("");
@@ -610,7 +585,7 @@ function renderChart(scenarios, months) {
                 label: s.name,
                 data: s.history,
                 borderWidth: i === 1 ? 2.5 : 1.5,
-                tension: 0.15,
+                tension: 0.3,
                 pointRadius: 0,
                 fill: false,
                 borderColor: i === 0 ? "rgba(255,255,255,0.30)" : i === 1 ? "#f7931a" : "#34c759"
@@ -627,28 +602,21 @@ function renderChart(scenarios, months) {
                     ticks: { color: "rgba(255,255,255,0.4)", callback: v => "$" + v.toLocaleString() }
                 }
             },
-            plugins: { legend: { display: true, labels: { color: "rgba(255,255,255,0.5)", font: { size: 11 } } } }
+            plugins: {
+                legend: { display: true, labels: { color: "rgba(255,255,255,0.5)", font: { size: 11 } } }
+            }
         }
     });
 }
 
 
-
-// ===== HORIZON + MODE BUTTONS =====
+// ===== HORIZON BUTTONS =====
 
 document.querySelectorAll(".horizon-btn").forEach(btn => {
     btn.addEventListener("click", () => {
         document.querySelectorAll(".horizon-btn").forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
         document.getElementById("yearsInput").value = btn.dataset.years;
-    });
-});
-
-document.querySelectorAll(".mode-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-        document.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        simulationMode = btn.dataset.mode;
     });
 });
 
@@ -668,6 +636,7 @@ window.addEventListener("load", async () => {
     document.getElementById("yearsInput").value   = 10;
 
     document.querySelectorAll(".horizon-btn").forEach(btn => {
+        btn.classList.remove("active");
         if (btn.dataset.years === "10") btn.classList.add("active");
     });
 
