@@ -498,15 +498,16 @@ const fmtUSD = n => "$" + Math.round(n).toLocaleString();
 const fmtPct = n => (n >= 0 ? "+" : "") + n.toFixed(2) + "%";
 const chgCls = n => n > 0 ? "pos" : n < 0 ? "neg" : "neu";
 
+// ── Identical to app.js ──
 function positionFromSignals(fg, btc7d) {
-    if (fg === null || fg === undefined || btc7d === null || btc7d === undefined) return "Accumulation";
-    if (fg <= 25) return "Capitulation";
-    if (fg <= 45 && btc7d < 5)  return "Accumulation";
-    if (fg <= 75 && btc7d >= 0) return "Expansion";
-    if (fg > 75)                return "Euphoria";
+    if (fg === null || btc7d === null) return "Accumulation";
+    if (fg <= 25 && btc7d <= -5)  return "Capitulation";
+    if (fg <= 25)                  return "Capitulation";
+    if (fg <= 45 && btc7d < 5)    return "Accumulation";
+    if (fg <= 75 && btc7d >= 0)   return "Expansion";
+    if (fg > 75)                   return "Euphoria";
     return "Accumulation";
 }
-  
 
 function riskScore({ fg, spMood, btc24h, btc7d }) {
     const fgRisk  = fg === null ? 50 : fg;
@@ -531,58 +532,58 @@ function biasFromPosition(pos, risk) {
 }
 
 function getCommentary(pos) {
-const c = {
-Capitulation: "Extreme fear dominates. Historically, capitulation punishes panic exits more than patient holders. Noise is at maximum — signal is at minimum. Your thesis doesn't change because the price does.",
-Accumulation: "Bitcoin is consolidating with sentiment compressed and participation low. Historically, this is where long-term holders are built — not where they exit. The structure remains intact. No catalyst is needed for this phase to continue quietly for months.",
-Expansion: "Confidence is returning and participation is growing. Momentum is real, but so is the risk of overexposure. This phase rewards discipline more than aggression. Sizing up because price is rising is a common and costly mistake.",
-Euphoria: "Euphoria is present. Certainty has replaced caution and narratives dominate. Historically this is where risk is highest — not lowest. Protecting what you've built matters more than capturing the final move."
-};
-return c[pos];
+    const c = {
+        Capitulation: "Extreme fear dominates. Historically, capitulation punishes panic exits more than patient holders. Noise is at maximum — signal is at minimum. Your thesis doesn't change because the price does.",
+        Accumulation: "Bitcoin is consolidating with sentiment compressed and participation low. Historically, this is where long-term holders are built — not where they exit. The structure remains intact. No catalyst is needed for this phase to continue quietly for months.",
+        Expansion: "Confidence is returning and participation is growing. Momentum is real, but so is the risk of overexposure. This phase rewards discipline more than aggression. Sizing up because price is rising is a common and costly mistake.",
+        Euphoria: "Euphoria is present. Certainty has replaced caution and narratives dominate. Historically this is where risk is highest — not lowest. Protecting what you've built matters more than capturing the final move."
+    };
+    return c[pos];
 }
 
 // ── Chart setup ──
 const cc = document.getElementById("chart-container");
 
 const chart = LightweightCharts.createChart(cc, {
-layout: {
-background: { type: "solid", color: "transparent" },
-textColor: "rgba(240,237,232,0.40)",
-fontFamily: "'DM Sans', system-ui, sans-serif",
-fontSize: 11,
-},
-grid: {
-vertLines: { color: "rgba(255,255,255,0.025)" },
-horzLines: { color: "rgba(255,255,255,0.025)" },
-},
-crosshair: {
-mode: LightweightCharts.CrosshairMode.Normal,
-vertLine: { color: "rgba(247,147,26,0.30)", width: 1, style: 2, labelBackgroundColor: "#f7931a" },
-horzLine: { color: "rgba(247,147,26,0.30)", width: 1, style: 2, labelBackgroundColor: "#f7931a" },
-},
-rightPriceScale: {
-borderColor: "rgba(255,255,255,0.04)",
-textColor: "rgba(240,237,232,0.30)",
-scaleMargins: { top: 0.08, bottom: 0.06 },
-},
-timeScale: {
-borderColor: "rgba(255,255,255,0.04)",
-textColor: "rgba(240,237,232,0.30)",
-timeVisible: true, secondsVisible: false,
-},
-handleScale: { mouseWheel: true, pinch: true },
-handleScroll: { mouseWheel: true, pressedMouseMove: true, horzTouchDrag: true },
+    layout: {
+        background: { type: "solid", color: "transparent" },
+        textColor: "rgba(240,237,232,0.40)",
+        fontFamily: "'DM Sans', system-ui, sans-serif",
+        fontSize: 11,
+    },
+    grid: {
+        vertLines: { color: "rgba(255,255,255,0.025)" },
+        horzLines: { color: "rgba(255,255,255,0.025)" },
+    },
+    crosshair: {
+        mode: LightweightCharts.CrosshairMode.Normal,
+        vertLine: { color: "rgba(247,147,26,0.30)", width: 1, style: 2, labelBackgroundColor: "#f7931a" },
+        horzLine: { color: "rgba(247,147,26,0.30)", width: 1, style: 2, labelBackgroundColor: "#f7931a" },
+    },
+    rightPriceScale: {
+        borderColor: "rgba(255,255,255,0.04)",
+        textColor: "rgba(240,237,232,0.30)",
+        scaleMargins: { top: 0.08, bottom: 0.06 },
+    },
+    timeScale: {
+        borderColor: "rgba(255,255,255,0.04)",
+        textColor: "rgba(240,237,232,0.30)",
+        timeVisible: true, secondsVisible: false,
+    },
+    handleScale: { mouseWheel: true, pinch: true },
+    handleScroll: { mouseWheel: true, pressedMouseMove: true, horzTouchDrag: true },
 });
 
 const area = chart.addAreaSeries({
-lineColor: "#f7931a",
-topColor: "rgba(247,147,26,0.15)",
-bottomColor: "rgba(247,147,26,0.0)",
-lineWidth: 2,
-crosshairMarkerVisible: true,
-crosshairMarkerRadius: 4,
-crosshairMarkerBorderColor: "#f7931a",
-crosshairMarkerBackgroundColor: "#06060a",
-priceFormat: { type: "price", precision: 0, minMove: 1 },
+    lineColor: "#f7931a",
+    topColor: "rgba(247,147,26,0.15)",
+    bottomColor: "rgba(247,147,26,0.0)",
+    lineWidth: 2,
+    crosshairMarkerVisible: true,
+    crosshairMarkerRadius: 4,
+    crosshairMarkerBorderColor: "#f7931a",
+    crosshairMarkerBackgroundColor: "#06060a",
+    priceFormat: { type: "price", precision: 0, minMove: 1 },
 });
 
 function resize() { chart.applyOptions({ width: cc.clientWidth }); }
@@ -591,119 +592,116 @@ resize();
 
 // ── Timeframe button state ──
 let curTf = 30;
-let allPrices = []; // full 90-day dataset, sliced per timeframe
+let allPrices = [];
 
 function loadSlice(days) {
-if (!allPrices.length) return;
-// allPrices is sorted ascending by time
-const cutoff = Math.floor(Date.now() / 1000) - days * 86400;
-const slice  = allPrices.filter(p => p.time >= cutoff);
-area.setData(slice);
-chart.timeScale().fitContent();
+    if (!allPrices.length) return;
+    const cutoff = Math.floor(Date.now() / 1000) - days * 86400;
+    const slice  = allPrices.filter(p => p.time >= cutoff);
+    area.setData(slice);
+    chart.timeScale().fitContent();
 }
 
 document.querySelectorAll(".tf-btn").forEach(b => {
-b.addEventListener("click", () => {
-document.querySelectorAll(".tf-btn").forEach(x => x.classList.remove("active"));
-b.classList.add("active");
-curTf = parseInt(b.dataset.tf);
-loadSlice(curTf);
-});
+    b.addEventListener("click", () => {
+        document.querySelectorAll(".tf-btn").forEach(x => x.classList.remove("active"));
+        b.classList.add("active");
+        curTf = parseInt(b.dataset.tf);
+        loadSlice(curTf);
+    });
 });
 
-// ── Populate UI with market data ──
+// ── Populate UI — uses same logic as app.js ──
 function populateMetrics(btcPrice, btc24h, btc7d, fg) {
-  document.getElementById("hdr-price").textContent = btcPrice ? fmtUSD(btcPrice) : "—";
+    document.getElementById("hdr-price").textContent = btcPrice ? fmtUSD(btcPrice) : "—";
 
-  const el24 = document.getElementById("hdr-24h");
-  if (btc24h !== null && btc24h !== undefined && typeof btc24h === "number") {
-    el24.textContent = "24h " + fmtPct(btc24h);
-    el24.className   = "pill " + chgCls(btc24h);
-  } else {
-    el24.textContent = "24h —";
-    el24.className   = "pill neu";
-  }
+    const el24 = document.getElementById("hdr-24h");
+    if (typeof btc24h === "number") {
+        el24.textContent = "24h " + fmtPct(btc24h);
+        el24.className   = "pill " + chgCls(btc24h);
+    } else {
+        el24.textContent = "24h —";
+        el24.className   = "pill neu";
+    }
 
-  const el7d = document.getElementById("hdr-7d");
-  if (btc7d !== null && btc7d !== undefined && typeof btc7d === "number") {
-    el7d.textContent = "7d " + fmtPct(btc7d);
-    el7d.className   = "pill " + chgCls(btc7d);
-  } else {
-    el7d.textContent = "7d —";
-    el7d.className   = "pill neu";
-  }
+    const el7d = document.getElementById("hdr-7d");
+    if (typeof btc7d === "number") {
+        el7d.textContent = "7d " + fmtPct(btc7d);
+        el7d.className   = "pill " + chgCls(btc7d);
+    } else {
+        el7d.textContent = "7d —";
+        el7d.className   = "pill neu";
+    }
 
-  const pos   = positionFromSignals(fg, btc7d);
-  const score = riskScore({ fg: fg ?? null, spMood: null, btc24h: btc24h ?? null, btc7d: btc7d ?? null });
-  const risk  = riskLabel(score);
-  const bias = biasFromPosition(pos, score);
+    // spMood: null → uses same 50 fallback as app.js
+    const pos   = positionFromSignals(fg ?? null, btc7d ?? null);
+    const score = riskScore({ fg: fg ?? null, spMood: null, btc24h: btc24h ?? null, btc7d: btc7d ?? null });
+    const risk  = riskLabel(score);
+    const bias  = biasFromPosition(pos, score);
 
-  document.getElementById("m-fg").textContent    = fg !== null && fg !== undefined ? fg + " / 100" : "—";
-  document.getElementById("m-phase").textContent = pos;
-  document.getElementById("m-risk").textContent  = risk;
-  document.getElementById("m-bias").textContent  = bias;
+    document.getElementById("m-fg").textContent    = typeof fg === "number" ? fg + " / 100" : "—";
+    document.getElementById("m-phase").textContent = pos;
+    document.getElementById("m-risk").textContent  = risk;
+    document.getElementById("m-bias").textContent  = bias;
 
-  const riskEl = document.getElementById("m-risk");
-  riskEl.className = "mc-value " + (score >= 65 ? "bad" : score >= 40 ? "warn" : "good");
+    const riskEl = document.getElementById("m-risk");
+    riskEl.className = "mc-value " + (score >= 65 ? "bad" : score >= 40 ? "warn" : "good");
 
-  const fgEl = document.getElementById("m-fg");
-  fgEl.className = "mc-value " + (fg !== null && fg >= 65 ? "bad" : fg !== null && fg >= 35 ? "warn" : "bad");
+    const fgEl = document.getElementById("m-fg");
+    fgEl.className = "mc-value " + (typeof fg === "number" && fg >= 65 ? "bad" : typeof fg === "number" && fg >= 35 ? "warn" : "bad");
 
-  document.getElementById("phase-label").textContent     = pos;
-  document.getElementById("commentary-text").textContent = getCommentary(pos);
+    document.getElementById("phase-label").textContent     = pos;
+    document.getElementById("commentary-text").textContent = getCommentary(pos);
 }
 
 // ── Live data fetch ──
 async function loadChartData() {
-try {
-const [marketRes, ohlcvRes] = await Promise.all([
-fetch("/api/market-data"),
-fetch("/api/market-ohlcv")
-]);
+    try {
+        const [marketRes, ohlcvRes] = await Promise.all([
+            fetch("/api/market-data", { cache: "no-store" }),
+            fetch("/api/market-ohlcv", { cache: "no-store" })
+        ]);
 
-// Metrics
-if (!marketRes.ok) throw new Error("market-data failed");
-const market = await marketRes.json();
-populateMetrics(market.btcPrice, market.btc24h, market.btc7d, market.fearGreedNow);
+        if (!marketRes.ok) throw new Error("market-data failed");
+        const market = await marketRes.json();
+        if (!market.btcPrice) throw new Error("market-data returned empty");
 
-// Chart — real OHLCV converted to area series (close price)
-if (!ohlcvRes.ok) throw new Error("market-ohlcv failed");
-const ohlcv = await ohlcvRes.json();
+        populateMetrics(market.btcPrice, market.btc24h, market.btc7d, market.fearGreedNow);
 
-// Convert OHLCV candles → area series points using close price
-// Deduplicate by time (CoinGecko occasionally returns dupes)
-const seen = new Set();
-allPrices = ohlcv.candles
-.filter(c => {
-if (seen.has(c.time)) return false;
-seen.add(c.time);
-return true;
-})
-.map(c => ({ time: c.time, value: c.close }))
-.sort((a, b) => a.time - b.time);
+        if (!ohlcvRes.ok) throw new Error("market-ohlcv failed");
+        const ohlcv = await ohlcvRes.json();
 
-loadSlice(curTf);
+        const seen = new Set();
+        allPrices = ohlcv.candles
+            .filter(c => {
+                if (seen.has(c.time)) return false;
+                seen.add(c.time);
+                return true;
+            })
+            .map(c => ({ time: c.time, value: c.close }))
+            .sort((a, b) => a.time - b.time);
 
-} catch (err) {
-console.warn("Chart data load failed:", err.message);
-// Show dashes — don't crash the page
-populateMetrics(null, null, null, null);
-}
+        loadSlice(curTf);
+
+    } catch (err) {
+        console.warn("Chart data load failed:", err.message);
+        populateMetrics(null, null, null, null);
+    }
 }
 
 // ── Reveal animation ──
 const els = document.querySelectorAll(".reveal");
 const io = new IntersectionObserver(entries => {
-entries.forEach(e => {
-if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
-});
+    entries.forEach(e => {
+        if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+    });
 }, { rootMargin: "0px 0px -30px 0px", threshold: 0.05 });
 
 requestAnimationFrame(() => {
-els.forEach(el => {
-if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add("in");
-else io.observe(el);
-});
+    els.forEach(el => {
+        if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add("in");
+        else io.observe(el);
+    });
 });
 
 // ── Init ──
