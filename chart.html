@@ -493,6 +493,13 @@
 </div>
 
 <script>
+  //from app.js
+  
+
+
+
+
+  ///
 // ── Helpers ──
 const fmtUSD = n => "$" + Math.round(n).toLocaleString();
 const fmtPct = n => (n >= 0 ? "+" : "") + n.toFixed(2) + "%";
@@ -505,21 +512,28 @@ if (fg <= 45 && btc7d < 5)   return "Accumulation";
 if (fg <= 75 && btc7d >= 0)  return "Expansion";
 return "Euphoria";
 }
+  
 
-function riskScore(fg, btc24h, btc7d) {
-  const vol = (Math.abs(btc24h ?? 0) * 2 + Math.abs(btc7d ?? 0)) * 2;
-  return Math.round(Math.max(0, Math.min(100, (fg ?? 50) * 0.50 + Math.min(40, vol))));
+function riskScore({ fg, spMood, btc24h, btc7d }) {
+    const fgRisk  = fg === null ? 50 : fg;
+    const spRisk  = spMood === null ? 50 : spMood;
+    const vol     = (Math.abs(btc24h ?? 0) * 2 + Math.abs(btc7d ?? 0)) * 2;
+    const volRisk = Math.max(0, Math.min(40, vol));
+    return Math.round(Math.max(0, Math.min(100, fgRisk * 0.35 + spRisk * 0.25 + volRisk)));
 }
 
-function riskLabel(s) {
-if (s >= 75) return "High";
-if (s >= 55) return "Elevated";
-if (s >= 35) return "Normal";
-return "Low";
+function riskLabel(score) {
+    if (score >= 75) return "High";
+    if (score >= 55) return "Elevated";
+    if (score >= 35) return "Normal";
+    return "Low";
 }
 
-function biasFrom(pos) {
-return { Capitulation: "Defensive", Accumulation: "Constructive", Expansion: "Cautious", Euphoria: "Defensive" }[pos];
+function biasFromPosition(pos, risk) {
+    if (pos === "Capitulation") return "Defensive → Patient";
+    if (pos === "Accumulation") return risk >= 60 ? "Neutral → Careful" : "Neutral → Constructive";
+    if (pos === "Expansion")    return risk >= 70 ? "Constructive → Cautious" : "Constructive";
+    return "Cautious → Defensive";
 }
 
 function getCommentary(pos) {
@@ -532,7 +546,7 @@ Euphoria: "Euphoria is present. Certainty has replaced caution and narratives do
 return c[pos];
 }
 
-// ── Chart setup (runs immediately — no data yet) ──
+// ── Chart setup ──
 const cc = document.getElementById("chart-container");
 
 const chart = LightweightCharts.createChart(cc, {
@@ -628,7 +642,7 @@ function populateMetrics(btcPrice, btc24h, btc7d, fg) {
   const pos   = positionFromSignals(fg, btc7d);
   const score = riskScore(fg ?? null, btc24h ?? null, btc7d ?? null);
   const risk  = riskLabel(score);
-  const bias  = biasFrom(pos);
+  const bias  = biasFromPosition(pos, risk);
 
   document.getElementById("m-fg").textContent    = fg !== null && fg !== undefined ? fg + " / 100" : "—";
   document.getElementById("m-phase").textContent = pos;
