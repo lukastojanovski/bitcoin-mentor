@@ -491,26 +491,20 @@
 
   </div>
 </div>
-
-<script>
-  //from app.js
   
-
-
-
-
-  ///
+<script>
 // ── Helpers ──
 const fmtUSD = n => "$" + Math.round(n).toLocaleString();
 const fmtPct = n => (n >= 0 ? "+" : "") + n.toFixed(2) + "%";
 const chgCls = n => n > 0 ? "pos" : n < 0 ? "neg" : "neu";
 
 function positionFromSignals(fg, btc7d) {
-if (fg === null || btc7d === null) return "Accumulation";
-if (fg <= 20 && btc7d <= -10) return "Capitulation";
-if (fg <= 45 && btc7d < 5)   return "Accumulation";
-if (fg <= 75 && btc7d >= 0)  return "Expansion";
-return "Euphoria";
+    if (fg === null || fg === undefined || btc7d === null || btc7d === undefined) return "Accumulation";
+    if (fg <= 25) return "Capitulation";
+    if (fg <= 45 && btc7d < 5)  return "Accumulation";
+    if (fg <= 75 && btc7d >= 0) return "Expansion";
+    if (fg > 75)                return "Euphoria";
+    return "Accumulation";
 }
   
 
@@ -640,7 +634,7 @@ function populateMetrics(btcPrice, btc24h, btc7d, fg) {
   }
 
   const pos   = positionFromSignals(fg, btc7d);
-  const score = riskScore(fg ?? null, btc24h ?? null, btc7d ?? null);
+  const score = riskScore({ fg: fg ?? null, spMood: 50, btc24h: btc24h ?? null, btc7d: btc7d ?? null });
   const risk  = riskLabel(score);
   const bias  = biasFromPosition(pos, risk);
 
@@ -711,14 +705,6 @@ if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add("in");
 else io.observe(el);
 });
 });
-
-// ── Also fix the Pro CTA — remove the free trial language ──
-// Find this in your HTML and update it:
-// FROM: "Start 7-day free trial"
-// TO:   "Unlock for €4.99 / month"
-// And the note below it:
-// FROM: "Then €4.99/month · Cancel anytime"
-// TO:   "Cancel anytime · No lock-in"
 
 // ── Init ──
 window.addEventListener("load", loadChartData);
