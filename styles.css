@@ -1341,3 +1341,16 @@ footer {
   .ec-btn { width: 100%; padding: 14px; font-size: 0.92rem; }
   .ec-input { font-size: 16px; /* prevent iOS zoom */ padding: 13px 14px; }
 }
+.dca-disclaimer {
+  margin-top: 16px;
+  padding: 0 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.dca-disclaimer p {
+  font-size: 0.72rem;
+  color: var(--muted2);
+  line-height: 1.6;
+  margin: 0;
+}

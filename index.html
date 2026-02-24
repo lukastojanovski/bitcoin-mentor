@@ -21,10 +21,10 @@
       </button>
       <div class="menu-panel" id="simplePanel" role="menu">
         <a data-scroll="#overview">Overview</a>
-        <a data-scroll="#why">Why it works</a>
-        <a data-scroll="#cycles">Cycles</a>
         <a data-scroll="#dca">DCA Simulator</a>
+        <a data-scroll="#cycles">Cycles</a>
         <a data-scroll="#plan">My Plan</a>
+        <a data-scroll="#why">Why it works</a>
         <a data-scroll="#pricing">Pricing</a>
       </div>
     </div>
@@ -198,6 +198,87 @@
     </div>
   </section>
 
+  <!-- DCA SIMULATOR -->
+  <section id="dca" class="anchor">
+    <div class="wrap">
+      <div class="section-tag">Projection Model</div>
+      <div class="section-head reveal">
+        <div>
+          <h2>DCA Simulator</h2>
+          <p class="lead">Simulate long-term accumulation through disciplined monthly investing.</p>
+        </div>
+        <div class="hc-badge"><span class="dot good"></span><span>Projection tool</span></div>
+      </div>
+
+      <div class="choice-grid">
+        <div class="card span6 reveal">
+          <div class="label-upper">Your Parameters</div>
+          <div class="divider"></div>
+          <label class="muted">Monthly investment ($)</label>
+          <input type="number" id="monthlyInput" placeholder="e.g. 200" class="input-field">
+          <div style="height:14px;"></div>
+          <label class="muted">Time horizon (years)</label>
+          <div class="horizon-selector">
+            <button type="button" class="horizon-btn" data-years="5">5y</button>
+            <button type="button" class="horizon-btn" data-years="10">10y</button>
+            <button type="button" class="horizon-btn" data-years="15">15y</button>
+            <button type="button" class="horizon-btn" data-years="20">20y</button>
+          </div>
+          <input type="hidden" id="yearsInput">
+          <div class="divider"></div>
+          <button id="runDCA" class="btn primary" style="width:100%;">Run Simulation</button>
+        </div>
+
+        <div id="dcaResultsWrapper" style="display:none;" class="card soft span12 reveal premium-result">
+          <div class="result-summary">
+            <div class="summary-item">
+              <div class="summary-label">Total Invested</div>
+              <div class="summary-value" id="summaryInvested">$0</div>
+            </div>
+            <div class="summary-item highlight">
+              <div class="summary-label">Base Case Value</div>
+              <div class="summary-value" id="summaryBase">$0</div>
+            </div>
+            <div class="summary-item">
+              <div class="summary-label">Return</div>
+              <div class="summary-value" id="summaryReturn">0%</div>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <table class="dca-table">
+            <thead><tr><th>Scenario</th><th>Total Invested</th><th>Portfolio Value</th><th>Return</th></tr></thead>
+            <tbody id="dcaTableBody"></tbody>
+          </table>
+          <div class="chart-title">Portfolio Growth Over Time</div>
+          <div class="chart-container"><canvas id="dcaChart"></canvas></div>
+
+          <div class="dca-hook">
+            <div class="hook-inner">
+              <div class="hook-badge">Hard Truth</div>
+              <h3>The simulation assumes perfect discipline.</h3>
+              <p>It assumes you never panic sell. Never skip DCA. Don't FOMO at the top.</p>
+              <div class="divider"></div>
+              <div class="hook-contrast">
+                <div>
+                  <strong>Without a system</strong>
+                  <ul><li>Emotional buys</li><li>Missed DCA months</li><li>Panic during −40%</li></ul>
+                </div>
+                <div>
+                  <strong>With Bitcoin Mentor Pro</strong>
+                  <ul><li>Cycle-aware guardrails</li><li>Strategy-aligned decisions</li><li>Position sizing discipline</li></ul>
+                </div>
+              </div>
+              <button class="btn primary hook-btn" data-scroll="#plan">Build My Discipline System →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="dca-disclaimer">
+        <p>Conservative scenario assumes ~14% CAGR. Base Case ~24%. Bull Case ~38%. All reflect diminishing returns as Bitcoin matures. Horizons beyond 20 years are excluded due to high uncertainty.</p>
+        <p>Projections are illustrative only. Not financial advice. Past performance does not guarantee future results. Always invest based on your own risk tolerance.</p>
+      </div>
+    </div>
+  </section>
   <!-- MARKET CYCLES -->
   <section id="cycles" class="anchor">
     <div class="wrap">
@@ -255,90 +336,6 @@
         <div class="divider"></div>
         <div class="muted" style="font-weight:600;">Historical framing</div>
         <p id="cycleExample" class="muted" style="margin:8px 0 0 0;"></p>
-      </div>
-    </div>
-  </section>
-
-  <!-- DCA SIMULATOR -->
-  <section id="dca" class="anchor">
-    <div class="wrap">
-      <div class="section-tag">Projection Model</div>
-      <div class="section-head reveal">
-        <div>
-          <h2>DCA Simulator</h2>
-          <p class="lead">Simulate long-term accumulation through disciplined monthly investing.</p>
-        </div>
-        <div class="hc-badge"><span class="dot good"></span><span>Projection tool</span></div>
-      </div>
-
-      <div class="choice-grid">
-        <div class="card span6 reveal">
-          <div class="label-upper">Your Parameters</div>
-          <div class="divider"></div>
-          <label class="muted">Monthly investment ($)</label>
-          <input type="number" id="monthlyInput" placeholder="e.g. 200" class="input-field">
-          <div style="height:14px;"></div>
-          <label class="muted">Time horizon (years)</label>
-          <div class="horizon-selector">
-            <button type="button" class="horizon-btn" data-years="5">5y</button>
-            <button type="button" class="horizon-btn" data-years="10">10y</button>
-            <button type="button" class="horizon-btn" data-years="15">15y</button>
-            <button type="button" class="horizon-btn" data-years="20">20y</button>
-            <button type="button" class="horizon-btn" data-years="25">25y</button>
-            <button type="button" class="horizon-btn" data-years="30">30y</button>
-          </div>
-          <input type="hidden" id="yearsInput">
-          <div class="divider"></div>
-          <div class="mode-toggle">
-            <button class="mode-btn active" data-mode="realistic">Realistic</button>
-            <button class="mode-btn" data-mode="optimistic">Optimistic</button>
-          </div>
-          <button id="runDCA" class="btn primary" style="width:100%;">Run Simulation</button>
-        </div>
-
-        <div id="dcaResultsWrapper" style="display:none;" class="card soft span12 reveal premium-result">
-          <div class="result-summary">
-            <div class="summary-item">
-              <div class="summary-label">Total Invested</div>
-              <div class="summary-value" id="summaryInvested">$0</div>
-            </div>
-            <div class="summary-item highlight">
-              <div class="summary-label">Base Case Value</div>
-              <div class="summary-value" id="summaryBase">$0</div>
-            </div>
-            <div class="summary-item">
-              <div class="summary-label">Return</div>
-              <div class="summary-value" id="summaryReturn">0%</div>
-            </div>
-          </div>
-          <div class="divider"></div>
-          <table class="dca-table">
-            <thead><tr><th>Scenario</th><th>Total Invested</th><th>Portfolio Value</th><th>Return</th></tr></thead>
-            <tbody id="dcaTableBody"></tbody>
-          </table>
-          <div class="chart-title">Portfolio Growth Over Time</div>
-          <div class="chart-container"><canvas id="dcaChart"></canvas></div>
-
-          <div class="dca-hook">
-            <div class="hook-inner">
-              <div class="hook-badge">Hard Truth</div>
-              <h3>The simulation assumes perfect discipline.</h3>
-              <p>It assumes you never panic sell. Never skip DCA. Don't FOMO at the top.</p>
-              <div class="divider"></div>
-              <div class="hook-contrast">
-                <div>
-                  <strong>Without a system</strong>
-                  <ul><li>Emotional buys</li><li>Missed DCA months</li><li>Panic during −40%</li></ul>
-                </div>
-                <div>
-                  <strong>With Bitcoin Mentor Pro</strong>
-                  <ul><li>Cycle-aware guardrails</li><li>Strategy-aligned decisions</li><li>Position sizing discipline</li></ul>
-                </div>
-              </div>
-              <button class="btn primary hook-btn" data-scroll="#plan">Build My Discipline System →</button>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   </section>
