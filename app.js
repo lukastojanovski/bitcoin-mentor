@@ -554,13 +554,16 @@ async function runDCASimulation(monthly, years) {
     const months        = years * 12;
     const totalInvested = monthly * months;
     const startPrice    = btcPrice;
-    // Seed based only on inputs — no mode variable
-    const baseSeed      = monthly * 17 + years * 31 + 7;
+    // Always use the same seed regardless of years — ensures consistency
+    const baseSeed      = monthly * 17 + 7;
 
     const tableHTML = [];
 
     DCA_SCENARIOS.forEach(scenario => {
-        const path = generateBTCPath(startPrice, months, scenario.annualGrowth, baseSeed);
+        // Always generate full 30Y path, then slice to requested horizon
+        const fullPath = generateBTCPath(startPrice, 360, scenario.annualGrowth, baseSeed);
+        const path = fullPath.slice(0, months);
+
         let btcHeld = 0;
         const history = [];
 
