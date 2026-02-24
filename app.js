@@ -524,26 +524,27 @@ function generateBTCPath(startPrice, months, annualGrowth, baseSeed) {
     const prices = [];
 
     for (let i = 0; i < months; i++) {
-        // Growth decay: returns slow as asset matures (~8% per year)
+        // Growth decay: returns slow 5% per year as asset matures
         const year     = Math.floor(i / 12);
-        const decay    = 1 / (1 + year * 0.08);
+        const decay    = 1 / (1 + year * 0.05);
         const adjusted = annualGrowth * decay;
         const monthly  = Math.pow(1 + adjusted, 1 / 12) - 1;
 
-        // Box-Muller transform: converts uniform random → normal distribution
-        // Gives log-normal price shocks with ~15% monthly stdev (realistic for BTC)
+        // Box-Muller → normal distribution, scaled to 7% monthly stdev
+        // Enough wobble to look realistic without destroying returns
         const u1 = mulberry32(baseSeed + i * 13 + 1);
         const u2 = mulberry32(baseSeed + i * 13 + 2);
         const z  = Math.sqrt(-2 * Math.log(Math.max(u1, 1e-10))) * Math.cos(2 * Math.PI * u2);
-        const shock = z * 0.15;
+        const shock = z * 0.07;
 
         price *= (1 + monthly) * (1 + shock);
-        if (price < startPrice * 0.15) price = startPrice * 0.15; // floor at 15%
+        if (price < startPrice * 0.15) price = startPrice * 0.15;
         prices.push(price);
     }
 
     return prices;
 }
+
 
 let simulationMode = "optimistic";
 
@@ -553,7 +554,8 @@ async function runDCASimulation(monthly, years) {
     const months        = years * 12;
     const totalInvested = monthly * months;
     const startPrice    = btcPrice;
-    const baseSeed      = monthly * 17 + years * 31 + (simulationMode === "optimistic" ? 1 : 0) * 101;
+    // Seed based only on inputs — no mode variable
+    const baseSeed      = monthly * 17 + years * 31 + 7;
 
     const tableHTML = [];
 
@@ -631,6 +633,7 @@ function renderChart(scenarios, months) {
 }
 
 
+
 // ===== HORIZON + MODE BUTTONS =====
 
 document.querySelectorAll(".horizon-btn").forEach(btn => {
@@ -651,7 +654,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
 
 document.getElementById("runDCA").addEventListener("click", () => {
     const monthly = parseFloat(document.getElementById("monthlyInput").value);
-    const years = parseInt(document.getElementById("yearsInput").value);
+    const years   = parseInt(document.getElementById("yearsInput").value);
     if (!monthly || !years) return;
     runDCASimulation(monthly, years);
 });
@@ -662,16 +665,11 @@ window.addEventListener("load", async () => {
     await loadLiveMarketData();
 
     document.getElementById("monthlyInput").value = 500;
-    document.getElementById("yearsInput").value = 10;
+    document.getElementById("yearsInput").value   = 10;
 
     document.querySelectorAll(".horizon-btn").forEach(btn => {
         if (btn.dataset.years === "10") btn.classList.add("active");
     });
-    document.querySelectorAll(".mode-btn").forEach(btn => {
-        btn.classList.remove("active");
-        if (btn.dataset.mode === "optimistic") btn.classList.add("active");
-    });
-    simulationMode = "optimistic";
 
     await runDCASimulation(500, 10);
 });
