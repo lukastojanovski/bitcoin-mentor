@@ -491,7 +491,6 @@ document.querySelectorAll("[data-phase]").forEach(card => {
 
 
 // ===== DCA SIMULATOR =====
-
 // Hardcoded return percentages — based on Opus CAGR analysis
 // Conservative: ~14% CAGR | Base Case: ~24% CAGR | Bull Case: ~38% CAGR
 const DCA_RETURNS = {
