@@ -495,10 +495,10 @@ document.querySelectorAll("[data-phase]").forEach(card => {
 // Hardcoded return percentages — based on Opus CAGR analysis
 // Conservative: ~14% CAGR | Base Case: ~24% CAGR | Bull Case: ~38% CAGR
 const DCA_RETURNS = {
-    5:  { conservative: 0.38,  baseCase: 0.72,  bullCase: 1.25  },
-    10: { conservative: 1.05,  baseCase: 2.80,  bullCase: 6.40  },
-    15: { conservative: 2.20,  baseCase: 7.20,  bullCase: 24.00 },
-    20: { conservative: 4.10,  baseCase: 16.50, bullCase: 78.00 }
+    5:  { conservative: 0.55,  baseCase: 1.10,  bullCase: 1.95   },
+    10: { conservative: 1.80,  baseCase: 5.20,  bullCase: 14.00  },
+    15: { conservative: 4.20,  baseCase: 16.00, bullCase: 65.00  },
+    20: { conservative: 8.50,  baseCase: 42.00, bullCase: 240.00 }
 };
 
 const DCA_SCENARIOS = [
