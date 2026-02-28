@@ -640,8 +640,122 @@ window.addEventListener("load", async () => {
     });
 
     await runDCASimulation(500, 10);
+    initDecisionHelper();
 });
+// ===== DECISION HELPER =====
 
+function decisionHelper(intent, pos, score) {
+    const high = score >= 55;
+    const map = {
+        buy: {
+            Capitulation: {
+                action: "Strong DCA opportunity — this is what patience is built for",
+                bullets: [
+                    "Historically, the best long-term entries came during extreme fear.",
+                    "Capitulation punishes sellers more than buyers. Time is on your side.",
+                    "Stick to your plan — or consider accelerating your DCA if you have available capital."
+                ]
+            },
+            Accumulation: {
+                action: "Good environment to DCA",
+                bullets: [
+                    "Low sentiment, low volatility — the environment your plan was designed for.",
+                    "Stick to your regular schedule. Consistency here builds the most positions.",
+                    "No urgency to rush or delay."
+                ]
+            },
+            Expansion: {
+                action: high ? "Proceed with caution — risk is elevated" : "Scale in small",
+                bullets: [
+                    "Confidence is returning but risk is rising with it.",
+                    "Preserve cash for lower-risk entries — don't chase the move.",
+                    "This phase historically punishes aggressive sizing."
+                ]
+            },
+            Euphoria: {
+                action: "Avoid adding — risk is at its highest",
+                bullets: [
+                    "Sentiment is extreme. This is where most late buyers get trapped.",
+                    "Your DCA continues on schedule, but avoid discretionary adds.",
+                    "Protect what you've built rather than chasing the final move."
+                ]
+            }
+        },
+        sell: {
+            Capitulation: {
+                action: "Selling now is historically the worst exit",
+                bullets: [
+                    "Fear is at maximum — the market is pricing in the worst case.",
+                    "Long-term holders who sold during past capitulations mostly regret it.",
+                    "If your thesis hasn't changed, your plan hasn't changed."
+                ]
+            },
+            Accumulation: {
+                action: "No strong reason to sell",
+                bullets: [
+                    "Low signal environment — neither a clear top nor a clear bottom.",
+                    "Selling here typically means selling into boredom, not into strength.",
+                    "Review your IPS before acting."
+                ]
+            },
+            Expansion: {
+                action: high ? "Small partial profit is reasonable" : "Hold — trend is intact",
+                bullets: [
+                    "Momentum is building but the cycle isn't over.",
+                    "If you take profit, keep it small — 10-15% max.",
+                    "Selling the full position in expansion has historically cost long-term holders."
+                ]
+            },
+            Euphoria: {
+                action: "Reasonable to take partial profit",
+                bullets: [
+                    "Sentiment is extreme — protecting some gains is aligned with discipline.",
+                    "Consider 10-20% reduction, not a full exit.",
+                    "This is the phase where having a written plan matters most."
+                ]
+            }
+        }
+    };
+
+    return map[intent][pos];
+}
+
+function initDecisionHelper() {
+    const dhBuy    = document.getElementById("dhBuy");
+    const dhSell   = document.getElementById("dhSell");
+    const dhResult = document.getElementById("dhResult");
+
+    if (!dhBuy || !dhSell || !dhResult) return;
+
+    function showResult(intent) {
+        const currentPos   = positionFromSignals(
+            getSmoothedFGFromCache(fearGreedNow, fearGreedPrev), btc7d
+        );
+        const currentScore = riskScore({ fg: fearGreedNow, btc24h, btc7d });
+        const result       = decisionHelper(intent, currentPos, currentScore);
+
+        document.getElementById("dhTitle").textContent  = intent === "buy" ? "Thinking of buying" : "Thinking of selling";
+        document.getElementById("dhPhase").textContent  = currentPos;
+        document.getElementById("dhAction").textContent = result.action;
+
+        const ul = document.getElementById("dhBullets");
+        ul.innerHTML = result.bullets.map(b => `<li>${b}</li>`).join("");
+
+        dhResult.style.display = "block";
+
+        const dot = dhResult.querySelector(".dot");
+        dot.className = "dot " + (intent === "buy" ? "good" : "bad");
+
+        // Active state on buttons
+        document.querySelectorAll(".dh-btn").forEach(b => b.classList.remove("active"));
+        document.getElementById(intent === "buy" ? "dhBuy" : "dhSell").classList.add("active");
+
+        dhResult.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    dhBuy.addEventListener("click",  () => showResult("buy"));
+    dhSell.addEventListener("click", () => showResult("sell"));
+}
 const cta = document.getElementById("ctaPersonalize");
 if (cta) {
     cta.addEventListener("click", () => {

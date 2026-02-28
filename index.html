@@ -274,7 +274,7 @@
         </div>
       </div>
       <div class="dca-disclaimer">
-        <p>Conservative scenario assumes ~14% CAGR. Base Case ~24%. Bull Case ~38%. All reflect diminishing returns as Bitcoin matures. Horizons beyond 20 years are excluded due to high uncertainty.</p>
+        <p>Conservative scenario assumes ≈19% CAGR, decaying to ≈15%. Base Case ≈32% CAGR, decaying to ≈23%. Bull Case ≈47% CAGR, decaying to ≈32%. All reflect diminishing returns as Bitcoin matures. Maximum horizon is 20 years — projections beyond this carry too much uncertainty to be meaningful.</p>
         <p>Projections are illustrative only. Not financial advice. Past performance does not guarantee future results. Always invest based on your own risk tolerance.</p>
       </div>
     </div>
@@ -353,27 +353,34 @@
       </div>
       <div class="choice-grid">
         <div class="card span6 reveal">
-          <div class="label-upper">Portfolio · v1</div>
+          <div class="label-upper">Your Investment Strategy</div>
           <div class="divider"></div>
-          <div class="row"><span class="muted">BTC allocation</span><strong>70%</strong></div>
-          <div class="row" style="margin-top:8px;"><span class="muted">Cash allocation</span><strong>30%</strong></div>
-          <div class="divider"></div>
-          <div class="muted" style="margin-bottom:10px;">Strategy</div>
-          <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <span class="tag-pill active">DCA + dips</span>
-            <span class="tag-pill">Swing profit-taking</span>
-            <span class="tag-pill">Low trading</span>
+          <div class="ips-hooks">
+            <div class="ips-hook-item">
+              <span class="ips-hook-icon">→</span>
+              <span>Your monthly DCA target and time horizon</span>
+            </div>
+            <div class="ips-hook-item">
+              <span class="ips-hook-icon">→</span>
+              <span>What you'll do at −30%, −50%, −70% drawdowns</span>
+            </div>
+            <div class="ips-hook-item">
+              <span class="ips-hook-icon">→</span>
+              <span>Your exit conditions, if any</span>
+            </div>
           </div>
+          <p class="ips-subtext">Tell us your goals. We build your strategy around them.</p>
           <div class="divider"></div>
           <button class="btn primary" style="width:100%;" data-scroll="#plan">Create my plan</button>
+          <p class="muted2" style="text-align:center; margin-top:8px; font-size:0.78rem;">Takes 2 minutes</p>
         </div>
         <div class="card soft span6 reveal">
           <div class="label-upper">Before You Act</div>
           <div class="divider"></div>
           <div class="muted">I'm thinking of…</div>
           <div class="cta-row" style="margin-top:10px;">
-            <button class="btn ghost" style="flex:1;" data-scroll="#decision">Buying</button>
-            <button class="btn ghost" style="flex:1;" data-scroll="#decision">Selling</button>
+            <button class="btn-action buy" data-scroll="#decision">Buying</button>
+            <button class="btn-action sell" data-scroll="#decision">Selling</button>
           </div>
           <div class="divider"></div>
           <p class="muted" style="font-size:0.88rem; margin:0;">Pro users get strategy-aligned suggestions and sizing guidance. No exact prices. No predictions.</p>
@@ -394,33 +401,24 @@
         <div class="hc-badge"><span class="dot warn"></span><span>Example output</span></div>
       </div>
       <div class="choice-grid">
-        <div class="card span6 reveal">
-          <div class="row">
-            <strong>Thinking of buying</strong>
-            <div class="hc-badge"><span class="dot warn"></span><span>Late Expansion</span></div>
-          </div>
-          <div class="divider"></div>
-          <div class="muted">Suggested action</div>
-          <div style="margin-top:8px;font-size:1.1rem;font-weight:650;letter-spacing:-0.02em;">Scale in (small add)</div>
-          <ul class="list">
-            <li>You still have cash available — preserve it for better entries.</li>
-            <li>This phase historically punishes aggressive chasing.</li>
-            <li>Fits your "DCA + dips" strategy.</li>
-          </ul>
+        <div class="dh-intent-row">
+          <button class="dh-btn buy" id="dhBuy">Thinking of buying</button>
+          <button class="dh-btn sell" id="dhSell">Thinking of selling</button>
         </div>
-        <div class="card soft span6 reveal">
+        <div id="dhResult" style="display:none;" class="card soft reveal">
           <div class="row">
-            <strong>Thinking of selling</strong>
-            <div class="hc-badge"><span class="dot warn"></span><span>Approaching Euphoria</span></div>
+            <strong id="dhTitle">—</strong>
+            <div class="hc-badge"><span class="dot warn"></span><span id="dhPhase">—</span></div>
           </div>
           <div class="divider"></div>
           <div class="muted">Suggested action</div>
-          <div style="margin-top:8px;font-size:1.1rem;font-weight:650;letter-spacing:-0.02em;">Take partial profit (10–20%)</div>
-          <ul class="list">
-            <li>Build cash buffer for future phases.</li>
-            <li>Aligned with your profit-taking preference.</li>
-            <li>Not a prediction — a discipline framework.</li>
-          </ul>
+          <div id="dhAction" style="margin-top:8px;font-size:1.1rem;font-weight:650;letter-spacing:-0.02em;">—</div>
+          <ul class="list" id="dhBullets"></ul>
+        </div>
+        <div class="dh-pro-lock">
+          <span>🔒</span>
+          <span>Pro: See what <em>your written strategy</em> says to do right now</span>
+          <button class="btn primary" data-scroll="#plan">Unlock →</button>
         </div>
       </div>
     </div>
