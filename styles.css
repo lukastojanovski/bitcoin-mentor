@@ -1433,46 +1433,55 @@ footer {
 
 .dh-btn {
   flex: 1;
-  padding: 14px 20px;
-  border-radius: 999px;
+  padding: 16px 20px;
+  border-radius: var(--r-md);
   font-family: 'DM Sans', sans-serif;
   font-weight: 650;
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   cursor: pointer;
   transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
   border: 1px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  letter-spacing: -0.01em;
 }
-.dh-btn:hover  { transform: translateY(-1px); }
-.dh-btn:active { transform: translateY(0) scale(0.98); }
+.dh-btn:hover  { transform: translateY(-2px); }
+.dh-btn:active { transform: translateY(0) scale(0.97); }
 
 .dh-btn.buy {
   background: rgba(52, 199, 89, 0.10);
-  border-color: rgba(52, 199, 89, 0.22);
+  border-color: rgba(52, 199, 89, 0.25);
   color: var(--good);
+  box-shadow: 0 4px 16px rgba(52, 199, 89, 0.08), inset 0 1px 0 rgba(52, 199, 89, 0.12);
 }
 .dh-btn.buy:hover {
   background: rgba(52, 199, 89, 0.16);
-  box-shadow: 0 4px 16px rgba(52, 199, 89, 0.12);
+  border-color: rgba(52, 199, 89, 0.35);
+  box-shadow: 0 8px 24px rgba(52, 199, 89, 0.15), inset 0 1px 0 rgba(52, 199, 89, 0.15);
 }
 .dh-btn.buy.active {
-  background: rgba(52, 199, 89, 0.18);
-  border-color: rgba(52, 199, 89, 0.40);
-  box-shadow: 0 0 0 3px rgba(52, 199, 89, 0.08);
+  background: rgba(52, 199, 89, 0.20);
+  border-color: rgba(52, 199, 89, 0.45);
+  box-shadow: 0 0 0 3px rgba(52, 199, 89, 0.10), 0 8px 24px rgba(52, 199, 89, 0.15);
 }
 
 .dh-btn.sell {
   background: rgba(255, 69, 58, 0.08);
-  border-color: rgba(255, 69, 58, 0.20);
+  border-color: rgba(255, 69, 58, 0.22);
   color: var(--bad);
+  box-shadow: 0 4px 16px rgba(255, 69, 58, 0.06), inset 0 1px 0 rgba(255, 69, 58, 0.10);
 }
 .dh-btn.sell:hover {
   background: rgba(255, 69, 58, 0.14);
-  box-shadow: 0 4px 16px rgba(255, 69, 58, 0.10);
+  border-color: rgba(255, 69, 58, 0.32);
+  box-shadow: 0 8px 24px rgba(255, 69, 58, 0.12), inset 0 1px 0 rgba(255, 69, 58, 0.12);
 }
 .dh-btn.sell.active {
-  background: rgba(255, 69, 58, 0.16);
-  border-color: rgba(255, 69, 58, 0.38);
-  box-shadow: 0 0 0 3px rgba(255, 69, 58, 0.08);
+  background: rgba(255, 69, 58, 0.18);
+  border-color: rgba(255, 69, 58, 0.42);
+  box-shadow: 0 0 0 3px rgba(255, 69, 58, 0.08), 0 8px 24px rgba(255, 69, 58, 0.12);
 }
 
 #dhResult {
@@ -1511,7 +1520,8 @@ footer {
 
 @media (max-width: 600px) {
   .dh-intent-row { flex-direction: column; gap: 8px; }
-  .dh-btn { padding: 13px 16px; font-size: 0.88rem; }
+  .dh-btn { padding: 15px 16px; font-size: 0.90rem; }
   .dh-pro-lock { gap: 10px; }
   .dh-pro-lock .btn { margin-left: 0; width: 100%; text-align: center; }
+
 }
