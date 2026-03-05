@@ -35,7 +35,6 @@
     }
     a { color: inherit; text-decoration: none; }
 
-    /* ── AMBIENT GLOW ── */
     .glow {
       position: fixed; top: -200px; left: 50%; transform: translateX(-50%);
       width: 800px; height: 450px;
@@ -43,7 +42,6 @@
       pointer-events: none; z-index: 0;
     }
 
-    /* ── NAV ── */
     .nav {
       position: fixed; top: 0; left: 0; right: 0; z-index: 50;
       border-bottom: 1px solid rgba(255,255,255,0.05);
@@ -83,14 +81,12 @@
     }
     .btn-upgrade:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(247,147,26,0.30); }
 
-    /* ── PAGE ── */
     .page {
       position: relative; z-index: 1;
       max-width: var(--max); margin: 0 auto;
       padding: 80px 24px 72px;
     }
 
-    /* ── PRICE HEADER ── */
     .price-header {
       display: flex; align-items: flex-end; justify-content: space-between;
       gap: 16px; margin-bottom: 16px; padding-top: 16px;
@@ -128,7 +124,6 @@
       border: 1px solid rgba(247,147,26,0.16);
     }
 
-    /* ── CHART ── */
     .chart-wrap {
       background: rgba(255,255,255,0.03);
       border: 1px solid rgba(255,255,255,0.06);
@@ -139,7 +134,6 @@
     #chart-container { width: 100%; height: 380px; }
     @media (max-width: 600px) { #chart-container { height: 260px; } }
 
-    /* ── METRICS ROW ── */
     .metrics-row {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -169,7 +163,6 @@
     .mc-value.warn { color: var(--warn); }
     .mc-value.bad  { color: var(--bad); }
 
-    /* ── ANALYSIS GRID (commentary + pro) ── */
     .analysis-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -179,7 +172,6 @@
       .analysis-grid { grid-template-columns: 1fr; }
     }
 
-    /* ── COMMENTARY CARD ── */
     .commentary {
       padding: 24px;
       background: rgba(255,255,255,0.03);
@@ -218,7 +210,6 @@
     }
     .c-footer svg { width: 13px; height: 13px; opacity: 0.5; }
 
-    /* ── PRO UPSELL ── */
     .pro-card {
       position: relative;
       padding: 28px 26px;
@@ -287,7 +278,6 @@
       font-size: 0.72rem; color: var(--muted2);
     }
 
-    /* ── REVEAL ── */
     .reveal {
       opacity: 0; transform: translateY(14px);
       transition: opacity 450ms ease, transform 450ms ease;
@@ -298,24 +288,18 @@
     .reveal.d3 { transition-delay: 180ms; }
     .reveal.d4 { transition-delay: 240ms; }
 
-    /* ── SCROLLBAR ── */
     ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
 
-    /* ── MOBILE (≤600px) ── */
     @media (max-width: 600px) {
       .page { padding: 72px 14px 48px; }
-
-      /* Nav */
       .nav-inner { padding: 10px 14px; }
       .back-link { padding: 5px 10px; font-size: 0.74rem; }
       .back-link svg { width: 11px; height: 11px; }
       .brand { font-size: 0.84rem; gap: 6px; }
       .logo-mark { width: 22px; height: 22px; font-size: 0.7rem; }
       .btn-upgrade { padding: 7px 14px; font-size: 0.78rem; }
-
-      /* Price header */
       .price-header {
         flex-direction: column; align-items: flex-start; gap: 14px;
         padding-top: 10px; margin-bottom: 12px;
@@ -326,28 +310,18 @@
       .pill { font-size: 0.68rem; padding: 3px 7px; }
       .tf-row { gap: 2px; flex-wrap: wrap; }
       .tf-btn { padding: 5px 10px; font-size: 0.72rem; }
-
-      /* Chart */
       .chart-wrap { border-radius: 12px; margin-bottom: 10px; }
       #chart-container { height: 240px; }
-
-      /* Metrics */
       .metrics-row { grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
       .metric-card { padding: 12px 14px; }
       .metric-card .mc-label { font-size: 0.58rem; margin-bottom: 5px; }
       .metric-card .mc-value { font-size: 0.95rem; }
-
-      /* Analysis grid */
       .analysis-grid { grid-template-columns: 1fr; gap: 10px; }
-
-      /* Commentary */
       .commentary { padding: 18px; }
       .commentary .c-tag { font-size: 0.58rem; margin-bottom: 10px; }
       .phase-badge { font-size: 0.78rem; padding: 5px 11px; margin-bottom: 12px; }
       .commentary p { font-size: 0.84rem; line-height: 1.65; }
       .commentary .c-footer { font-size: 0.68rem; padding-top: 14px; }
-
-      /* Pro card */
       .pro-card { padding: 20px 18px; }
       .pro-card h3 { font-size: 1.05rem; }
       .pro-card .pro-sub { font-size: 0.8rem; margin-bottom: 18px; }
@@ -356,7 +330,6 @@
       .pro-cta { padding: 12px; font-size: 0.86rem; }
     }
 
-    /* ── SMALL PHONES (≤380px) ── */
     @media (max-width: 380px) {
       .price-amount { font-size: 1.4rem; }
       #chart-container { height: 200px; }
@@ -374,7 +347,6 @@
 
 <div class="glow"></div>
 
-<!-- NAV -->
 <nav class="nav">
   <div class="nav-inner">
     <div class="nav-left">
@@ -393,7 +365,6 @@
 
 <div class="page">
 
-  <!-- PRICE HEADER -->
   <div class="price-header reveal">
     <div class="price-left">
       <span class="price-pair">Bitcoin / USD</span>
@@ -412,12 +383,10 @@
     </div>
   </div>
 
-  <!-- CHART -->
   <div class="chart-wrap reveal d1">
     <div id="chart-container"></div>
   </div>
 
-  <!-- METRICS ROW -->
   <div class="metrics-row">
     <div class="metric-card reveal d1">
       <div class="mc-label">Fear & Greed</div>
@@ -437,7 +406,6 @@
     </div>
   </div>
 
-  <!-- ANALYSIS: COMMENTARY + PRO -->
   <div class="analysis-grid">
 
     <div class="commentary reveal d2">
@@ -492,19 +460,16 @@
 </div>
 
 <script>
-  // ── Helpers ──
   const fmtUSD = n => "$" + Math.round(n).toLocaleString();
   const fmtPct = n => (n >= 0 ? "+" : "") + n.toFixed(2) + "%";
   const chgCls = n => n > 0 ? "pos" : n < 0 ? "neg" : "neu";
 
-  // ── Smoothing: average today + yesterday to reduce whiplash ──
   function getSmoothedFGFromCache(fgNow, fgPrev) {
     if (fgNow === null) return null;
     if (fgPrev === null) return fgNow;
     return (fgNow + fgPrev) / 2;
   }
 
-  // ── Cycle phase — fed smoothed FG ──
   function positionFromSignals(fg, btc7d) {
     if (fg === null || btc7d === null) return "Accumulation";
     if (fg <= 25) return "Capitulation";
@@ -514,18 +479,14 @@
     return "Accumulation";
   }
 
-  // ── Risk score: FG 60% + asymmetric volatility up to 40% ──
   function riskScore({ fg, btc24h, btc7d }) {
     const fgRisk = fg === null ? 50 : fg;
-
-    const w24  = (btc24h ?? 0) < 0 ? 1.5 : 1.0;
-    const w7d  = (btc7d  ?? 0) < 0 ? 1.5 : 1.0;
-    const adj24 = Math.abs(btc24h ?? 0) * w24;
+    const w24    = (btc24h ?? 0) < 0 ? 1.5 : 1.0;
+    const w7d    = (btc7d  ?? 0) < 0 ? 1.5 : 1.0;
+    const adj24  = Math.abs(btc24h ?? 0) * w24;
     const adj7d  = Math.abs(btc7d  ?? 0) * w7d;
-
-    const vol     = (adj24 * 1.2 + adj7d) * 1.0;
+    const vol    = (adj24 * 1.2 + adj7d) * 1.0;
     const volRisk = Math.max(0, Math.min(40, vol));
-
     return Math.round(Math.max(0, Math.min(100, fgRisk * 0.60 + volRisk)));
   }
 
@@ -602,28 +563,17 @@
   window.addEventListener("resize", resize);
   resize();
 
-  // ── Timeframe button state ──
   let curTf = 30;
-  let allPrices = [];
-
-  function loadSlice(days) {
-    if (!allPrices.length) return;
-    const cutoff = Math.floor(Date.now() / 1000) - days * 86400;
-    const slice  = allPrices.filter(p => p.time >= cutoff);
-    area.setData(slice);
-    chart.timeScale().fitContent();
-  }
 
   document.querySelectorAll(".tf-btn").forEach(b => {
     b.addEventListener("click", () => {
       document.querySelectorAll(".tf-btn").forEach(x => x.classList.remove("active"));
       b.classList.add("active");
       curTf = parseInt(b.dataset.tf);
-      loadSlice(curTf);
+      loadChartData();
     });
   });
 
-  // ── Populate UI ──
   function populateMetrics(btcPrice, btc24h, btc7d, fg, fgPrev) {
     document.getElementById("hdr-price").textContent = btcPrice ? fmtUSD(btcPrice) : "—";
 
@@ -645,7 +595,6 @@
       el7d.className   = "pill neu";
     }
 
-    // Use smoothed FG for cycle classification — same as app.js
     const fgSmoothed = getSmoothedFGFromCache(fg ?? null, fgPrev ?? null);
     const pos   = positionFromSignals(fgSmoothed, btc7d ?? null);
     const score = riskScore({ fg: fg ?? null, btc24h: btc24h ?? null, btc7d: btc7d ?? null });
@@ -667,26 +616,24 @@
     document.getElementById("commentary-text").textContent = getCommentary(pos);
   }
 
-  // ── Live data fetch ──
   async function loadChartData() {
     try {
       const [marketRes, ohlcvRes] = await Promise.all([
         fetch("/api/market-data", { cache: "no-store" }),
-        fetch("/api/market-ohlcv", { cache: "no-store" })
+        fetch(`/api/market-ohlcv?days=${curTf}`, { cache: "no-store" })
       ]);
 
       if (!marketRes.ok) throw new Error("market-data failed");
       const market = await marketRes.json();
       if (!market.btcPrice) throw new Error("market-data returned empty");
 
-      // Pass fgPrev so chart.html can also smooth FG
       populateMetrics(market.btcPrice, market.btc24h, market.btc7d, market.fearGreedNow, market.fearGreedPrev);
 
       if (!ohlcvRes.ok) throw new Error("market-ohlcv failed");
       const ohlcv = await ohlcvRes.json();
 
       const seen = new Set();
-      allPrices = ohlcv.candles
+      const candles = ohlcv.candles
               .filter(c => {
                 if (seen.has(c.time)) return false;
                 seen.add(c.time);
@@ -695,7 +642,8 @@
               .map(c => ({ time: c.time, value: c.close }))
               .sort((a, b) => a.time - b.time);
 
-      loadSlice(curTf);
+      area.setData(candles);
+      chart.timeScale().fitContent();
 
     } catch (err) {
       console.warn("Chart data load failed:", err.message);
@@ -718,7 +666,6 @@
     });
   });
 
-  // ── Init ──
   window.addEventListener("load", loadChartData);
 </script>
 </body>
