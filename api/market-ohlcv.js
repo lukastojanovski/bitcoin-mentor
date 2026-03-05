@@ -8,10 +8,8 @@ module.exports = async function handler(req, res) {
 
     let url;
     if (useHourly) {
-      // market_chart returns hourly data for days <= 90
-      url = `https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=${days}&interval=hourly`;
+      url = `https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=${days}`;
     } else {
-      // OHLC endpoint for daily candles on longer timeframes
       url = `https://api.coingecko.com/api/v3/coins/bitcoin/ohlc?vs_currency=usd&days=${days}`;
     }
 
